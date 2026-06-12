@@ -1,0 +1,240 @@
+a{color: yellow;
+	    text-decoration: none;}
+		.ctips{
+			color: #ffff00; 
+		}
+		.ctips2{
+			color: #d8ddad; 
+		}
+		.ctips3{
+			color: #fff; 
+		}
+		
+.lightShadow{
+			box-shadow: inset 0px 0px 20px 0 rgb(174 209 239)
+			
+		}
+#res{ color: yellow;}
+.coinglass{
+	        font-size: 14px;
+	        color: white;
+	        background: #25863c;
+	        padding: 1px 1px;
+	        border-radius: 5px;
+	        margin-left: 2px;
+}
+.position{ 
+	color: white;
+	    font-size: 14px;
+	    padding: 0px 2px;
+	    background: #c15814;
+	    border-radius: 2px;
+	    margin-left: 2px;
+}
+.loading {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100px;
+        }
+        .loading-spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 2px solid rgba(255,255,255,0.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+		.hidden{ display: none!important;}
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        .chart-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .chart-box {
+			border-radius: 15px!important;
+            position: relative;
+            width: calc(49% - 4px);
+            /* min-width: 800px; */
+            height: 500px;
+            background-color:#15161a;
+            border-radius: 3px;
+            padding: 5px;
+            overflow: hidden;
+                border: 4px solid #b7aa6f;
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 5px;
+            padding-right: 20px;
+            height: 24px;
+        }
+        .symbol-info {
+            display: flex;
+            align-items: center;
+        }
+        .symbol-name {
+            font-size: 14px;
+            font-weight: bold;
+            margin-right: 2px;
+			margin-left: 1px;
+            cursor: pointer;
+            color: yellow;
+        }
+        .symbol-name:hover {
+            text-decoration: underline;
+        }
+        .price {
+            font-size: 12px;
+        }
+        .price-up {
+            color: yellow;
+			font-weight: bold;
+			    font-size: 12px;
+        }
+        .price-down {
+            color: #f6465d;
+        }
+        .time-intervals {
+            display: flex;
+            gap: 2px;
+			margin-left: 10px;
+        }
+        .interval-btn {
+            padding: 1px 3px;
+            font-size: 16px;
+            background-color: #333;
+            border: none;
+            border-radius: 2px;
+            color: #e0e0e0;
+            cursor: pointer;
+			margin: 0px;
+        }
+        .interval-btn.active {
+            background-color: #3498db;
+            font-weight: bold;
+        }
+        .interval-btn:hover {
+            background-color: #474747;
+        }
+        .chart-content {
+            width: 100%;
+            height: calc(100% - 29px);
+        }
+        .error-message {
+            color: #f6465d;
+            font-size: 12px;
+            margin-top: 5px;
+        }
+        .modal-content {
+            background-color: #252525;
+            color: #e0e0e0;
+        }
+        .modal-header {
+            border-bottom: 1px solid #333;
+        }
+        .modal-body {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+        .btn-close {
+            filter: invert(1);
+        }
+		
+		#loadLocal{
+			padding: 0px 10px;
+			    background-color: #ffaa00;
+			    color: #fff;
+			    border-radius: 5px;
+		}
+		#local{
+			/* margin-left: 50px; */
+		}
+		#tipsBox{
+			position: fixed;
+			top: 0;
+			left: 40%;
+			padding: 5px;
+			font-size: 25px;
+			background-color: #319300;
+			color: white;
+			display: none;
+		}
+		.tips-fail{
+			background-color: #b60000!important;
+		}
+		#localBox{
+			position: fixed;
+			top: 0; right: 0;
+			padding: 5px;
+			font-size: 12px;
+			background-color: rgba(0,0,0,0.5);
+			color: white;
+		}
+		
+		.chart-box input[type="checkbox"] {
+		  width: 12px;
+		    height: 12px;
+		    cursor: pointer;
+			    margin: 0;
+			    padding: 0;margin-left: 5px;
+		}
+		
+		.label2{
+			color: #75e7dc;
+				    font-size: 14px;
+		}
+		
+		.chart-box.width100 {
+		  width: calc(95% - 4px) !important;
+		}
+		
+		.chart-box.width50 {
+		  width: calc(49% - 10px) !important;
+		}
+		
+		.msg-box{
+			    background: rgba(255, 255, 255, 0.2);
+			    padding: 4px;
+			    border-radius: 4px;
+			    font-weight: bold;
+			    color: #ff0;
+		}
+		.sticky {
+		    position: -webkit-sticky; /* Safari 兼容 */
+		    position: sticky;
+		    top: 0; /* 当滚动到距离顶部 0px 时固定 */
+		    z-index: 1000; /* 确保在最上层 */
+		    background: #392d09; /* 防止内容穿透 */
+		}
+		#menu select{
+			width: 50px;
+		}
+		#menu .label{
+			margin-left: 10px;
+		}
+		
+		.symbol-msg{
+			background: rgba(255, 255, 255, 0.05);
+			    padding: 0px 4px;
+			    border-radius: 4px;
+			    /* font-weight: bold; */
+			    /* color: #d3ff00; */
+			    background: #5e0505;
+			    color: #fff;
+		}
+		#breakList{
+			position: fixed;
+			bottom: 0;
+			height: 50px;
+			width: 100%;
+			overflow:hidden;
+			background-color: rgba(0,0,0,0.2);
+			color: white;
+		}

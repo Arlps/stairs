@@ -1,0 +1,653 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>价格上涨过x%</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+	<link rel="stylesheet" href="show.css" />
+    <style>
+        :root {
+            --bg-primary: #121212;
+            --bg-secondary: #1e1e1e;
+            --bg-tertiary: #2d2d2d;
+            --text-primary: #ffffff;
+            --text-secondary: #b0b0b0;
+            --accent-primary: #007bff;
+            --accent-hover: #0056b3;
+            --positive: #28a745;
+            --negative: #dc3545;
+            --border-color: #444444;
+        }
+        
+        body {
+            font-family: 'Arial', sans-serif;
+            margin: 0;
+            padding: 0px;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            min-height: 100vh;
+        }
+        
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            background-color: var(--bg-secondary);
+            /* padding: 20px; */
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+			
+			    margin-bottom: 10px;
+        }
+        
+        h1 {
+            color: var(--text-primary);
+            text-align: center;
+            margin-bottom: 30px;
+            font-weight: 300;
+        }
+        
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-bottom: 0px;
+            padding: 10px;
+            background-color: var(--bg-tertiary);
+            border-radius: 6px;
+        }
+        
+        .control-group {
+            display: flex;
+            min-width:150px;
+        }
+        
+        label {
+         /*   margin-bottom: 8px;
+            font-weight: bold; */
+			margin-right: 5px;
+            color: var(--text-secondary);
+        }
+        
+        select, button, input {
+            padding: 3px 2px;
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            background-color: var(--bg-secondary);
+            color: var(--text-primary);
+            font-size: 14px;
+			
+        }
+		.controls select,.controls input,.controls button{width: 81px;}
+        
+        select:focus, button:focus, input:focus {
+            outline: none;
+            border-color: var(--accent-primary);
+            box-shadow: 0 0 0 2px rgba(0, 123, 255, 0.25);
+        }
+        
+        button {
+			margin-right:5px;
+            background-color: var(--accent-primary);
+            color: white;
+            cursor: pointer;
+            border: none;
+            font-weight: 600;
+        }
+        
+        button:hover {
+            background-color: var(--accent-hover);
+        }
+        
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .progress-container {
+            /* margin: 20px 0; */
+            background-color: var(--bg-tertiary);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        .progress-bar {
+            height: 8px;
+            background-color: var(--accent-primary);
+            width: 0%;
+            transition: width 0.3s ease;
+        }
+        
+        .status {
+            /* margin: 15px 0; */
+            padding: 5px;
+            background-color: var(--bg-tertiary);
+            border-radius: 4px;
+            font-size: 14px;
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 14px;
+        }
+        
+        th, td {
+            padding: 2px;
+            text-align: left;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        th {
+            background-color: var(--bg-tertiary);
+            font-weight: 600;
+            position: sticky;
+            top: 0;
+        }
+        
+        .positive {
+            color: var(--positive);
+            font-weight: 600;
+        }
+        
+        .negative {
+            color: var(--negative);
+            font-weight: 600;
+        }
+        
+        .results-info {
+            margin: 20px 0;
+            padding: 15px;
+            background-color: var(--bg-tertiary);
+            border-radius: 6px;
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        
+        <div class="controls">
+            <div class="control-group">
+                <label for="klineInterval">K线时间</label>
+                <select id="klineInterval">
+                    <option value="1m">1分钟</option>
+                    <option value="5m">5分钟</option>
+                    <option value="15m">15分钟</option>
+                    <option value="30m">30分钟</option>
+                    <option value="1h" selected >1小时</option>
+                    <option value="4h">4小时</option>
+                    <option value="1d">1日</option>
+					<option value="1w">1周</option>
+					<option value="1M">1月</option>
+                </select>
+            </div>
+            
+            <div class="control-group">
+				
+                <label for="klineLimit">K线根数</label>
+                <input type="number" id="klineLimit" min="2" max="500" value="24">
+            </div>
+            
+            <div class="control-group">
+                <label for="priceIncreaseThreshold">涨幅阈值 (%)</label>
+                <input type="number" id="priceIncreaseThreshold" min="1" max="1000" value="30" step="0.1">
+            </div>
+            
+            <div class="control-group" style="display:none">
+                <label for="speedOption">筛选速度</label>
+                <select id="speedOption">
+                    <option value="fast" selected>快速 (并发10)</option>
+                    <option value="medium">中速 (并发5)</option>
+                    <option value="slow">慢速 (并发2)</option>
+                </select>
+            </div>
+			<div class="control-group">
+        	    <button id="startBtn">开始筛选</button>
+        	    <button id="stopBtn" disabled>停止筛选</button>
+        		<button id="chart">K线图</button>
+			</div>
+			<div class="control-group">
+				<span id="res"></span>
+			</div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" id="progressBar"></div>
+        </div>
+        
+        <div class="status" id="status">准备就绪，请设置涨幅阈值并点击"开始筛选"</div>
+        
+        <div id="errorContainer"></div>
+        
+        <!-- <div class="results-info" id="resultsInfo" style="display: none;"></div> -->
+        
+        <div style="overflow-x: auto;">
+            <table id="resultsTable" style="display: none;">
+                <thead>
+                    <tr>
+                        <th>交易对</th>
+                        <th>当前价格</th>
+                        <th>24h涨跌幅</th>
+                        <th>最大涨幅</th>
+                        <th>达到阈值时间</th>
+                        <th>起始价格</th>
+                        <th>最高价格</th>
+                        <th>分析K线数</th>
+                        <th>K线尺度</th>
+                        <th>最后更新</th>
+                    </tr>
+                </thead>
+                <tbody id="resultsBody">
+                    <!-- 结果将在这里动态生成 -->
+                </tbody>
+            </table>
+        </div>
+    </div>
+<div id="loadingIndicator" class="loadin"></div>
+   	<div class="chart-container" id="chartContainer"></div>
+   <script src="show.js"></script>
+    <script>
+		showUnit($("#klineInterval"),$('#klineLimit'),$("#res"))
+		
+        // 全局变量
+        let isScanning = false;
+        let currentRequests = 0;
+        let maxConcurrentRequests = 10;
+        let scannedCount = 0;
+        let totalSymbols = 0;
+        let allSymbols = [];
+        
+        // 币安API基础URL
+        const BINANCE_FUTURES_API = 'https://fapi.binance.com/fapi/v1';
+        
+        // 显示错误信息
+        function showError(message) {
+            const errorContainer = $('#errorContainer');
+            errorContainer.html(`<div class="error">${message}</div>`);
+        }
+        
+        // 更新进度条
+        function updateProgress(completed, total) {
+            const percentage = total > 0 ? Math.round((completed / total) * 100) : 0;
+            $('#progressBar').css('width', percentage + '%');
+        }
+        
+        // 更新状态信息
+        function updateStatus(message) {
+            $('#status').text(message);
+        }
+        
+        // 获取币安永续合约交易对列表
+        async function fetchFuturesSymbols() {
+            try {
+                updateStatus('正在获取永续合约列表...');
+                
+                const response = await $.ajax({
+                    url: `${BINANCE_FUTURES_API}/exchangeInfo`,
+                    method: 'GET',
+                    timeout: 10000
+                });
+                
+                const symbols = response.symbols
+                    .filter(symbol => 
+                        symbol.quoteAsset === 'USDT' && 
+                        symbol.status === 'TRADING' &&
+                        symbol.contractType === 'PERPETUAL'
+                    )
+                    .map(symbol => symbol.symbol);
+                
+                updateStatus(`找到 ${symbols.length} 个USDT永续合约`);
+                return symbols;
+            } catch (error) {
+                const errorMsg = `获取合约列表失败: ${error.statusText || error.message}`;
+                updateStatus(errorMsg);
+                showError(errorMsg);
+                return [];
+            }
+        }
+        
+        // 获取K线数据
+        async function fetchKlineData(symbol, interval, limit = 200) {
+            if (!isScanning) return null;
+            
+            try {
+                const response = await $.ajax({
+                    url: `${BINANCE_FUTURES_API}/klines`,
+                    method: 'GET',
+                    data: {
+                        symbol: symbol,
+                        interval: interval,
+                        limit: limit
+                    },
+                    timeout: 15000
+                });
+                
+                return response.map(kline => ({
+                    timestamp: kline[0],
+                    open: parseFloat(kline[1]),
+                    high: parseFloat(kline[2]),
+                    low: parseFloat(kline[3]),
+                    close: parseFloat(kline[4]),
+                    volume: parseFloat(kline[5]),
+                    closeTime: kline[6]
+                }));
+            } catch (error) {
+                console.warn(`获取 ${symbol} K线数据失败:`, error);
+                return null;
+            }
+        }
+        
+        // 获取24小时行情
+        async function fetch24hrTicker(symbol) {
+            try {
+                const response = await $.ajax({
+                    url: `${BINANCE_FUTURES_API}/ticker/24hr`,
+                    method: 'GET',
+                    data: { symbol: symbol },
+                    timeout: 5000
+                });
+                
+                return {
+                    symbol: response.symbol,
+                    price: parseFloat(response.lastPrice),
+                    priceChange: parseFloat(response.priceChange),
+                    priceChangePercent: parseFloat(response.priceChangePercent),
+                    volume: parseFloat(response.quoteVolume)
+                };
+            } catch (error) {
+                console.warn(`获取 ${symbol} 24小时行情失败:`, error);
+                return null;
+            }
+        }
+        
+        // 分析价格涨幅 - 核心筛选逻辑
+        function analyzePriceIncrease(klines, thresholdPercent) {
+            if (!klines || klines.length < 2) return null;
+            
+            let maxIncrease = 0;
+            let startPrice = 0;
+            let highestPrice = 0;
+            let increaseTime = null;
+            
+            // 遍历所有K线，计算从每根K线开始的最大涨幅
+            for (let i = 0; i < klines.length - 1; i++) {
+                const currentKline = klines[i];
+                // const currentPrice = currentKline.close;
+				const currentPrice = currentKline.low;
+                
+                // 检查从当前K线开始的后续K线
+                for (let j = i + 1; j < klines.length; j++) {
+                    const checkKline = klines[j];
+                    const checkPrice = checkKline.high; // 使用最高价来计算最大潜在涨幅
+                    
+                    const increase = ((checkPrice - currentPrice) / currentPrice) * 100;
+                    
+                    if (increase > maxIncrease) {
+                        maxIncrease = increase;
+                        startPrice = currentPrice;
+                        highestPrice = checkPrice;
+                        increaseTime = checkKline.timestamp;
+                    }
+                    
+                    // 如果已经找到超过阈值的涨幅，可以提前终止内层循环
+                    if (increase >= thresholdPercent) {
+                        // 继续寻找可能更大的涨幅
+                    }
+                }
+            }
+            
+            // 检查是否达到阈值
+            if (maxIncrease >= thresholdPercent) {
+                return {
+                    maxIncrease: maxIncrease,
+                    startPrice: startPrice,
+                    highestPrice: highestPrice,
+                    increaseTime: increaseTime,
+                    thresholdReached: true
+                };
+            }
+            
+            return null;
+        }
+        
+        // 格式化时间显示
+        function formatTime(timestamp) {
+            const date = new Date(timestamp);
+            return date.toLocaleString('zh-CN', {
+                year: 'numeric',
+                month: '2-digit',
+                day: '2-digit',
+                hour: '2-digit',
+                minute: '2-digit',
+				second:'2-digit'
+            });
+        }
+        
+        // 筛选单个交易对
+        async function scanSymbol(symbol, interval, limit, threshold) {
+            if (!isScanning) return null;
+            
+            currentRequests++;
+            
+            try {
+                // 获取K线数据
+                const klines = await fetchKlineData(symbol, interval, limit);
+                // if (!klines || klines.length < limit) return null;
+				if (!klines) return null;
+                
+                // 分析价格涨幅
+                const increaseAnalysis = analyzePriceIncrease(klines, threshold);
+                if (!increaseAnalysis) return null;
+                
+                // 获取最新行情信息
+                const ticker = await fetch24hrTicker(symbol);
+                if (!ticker) return null;
+                
+                return {
+                    symbol: symbol,
+                    currentPrice: ticker.price,
+                    priceChange24h: ticker.priceChangePercent,
+                    maxIncrease: increaseAnalysis.maxIncrease,
+                    startPrice: increaseAnalysis.startPrice,
+                    highestPrice: increaseAnalysis.highestPrice,
+                    increaseTime: increaseAnalysis.increaseTime,
+                    klineCount: klines.length,
+                    interval: interval,
+                    timestamp: new Date().toLocaleTimeString()
+                };
+            } catch (error) {
+                console.error(`扫描 ${symbol} 时出错:`, error);
+                return null;
+            } finally {
+                currentRequests--;
+                scannedCount++;
+                updateProgress(scannedCount, totalSymbols);
+            }
+        }
+        
+        // 批量筛选交易对
+        async function batchScanSymbols(symbols, interval, limit, threshold, speed) {
+            const results = [];
+            scannedCount = 0;
+            totalSymbols = symbols.length;
+            
+            // 根据速度设置并发数
+            if (speed === 'fast') {
+                maxConcurrentRequests = 20;
+            } else if (speed === 'medium') {
+                maxConcurrentRequests = 5;
+            } else {
+                maxConcurrentRequests = 2;
+            }
+            
+            updateStatus(`开始筛选 ${symbols.length} 个交易对，涨幅阈值: ${threshold}%，K线尺度: ${interval}，分析根数: ${limit}`);
+            
+            for (let i = 0; i < symbols.length; i += maxConcurrentRequests) {
+                if (!isScanning) break;
+                
+                const batch = symbols.slice(i, i + maxConcurrentRequests);
+                const batchPromises = batch.map(symbol => 
+                    scanSymbol(symbol, interval, limit, threshold)
+                );
+                
+                const batchResults = await Promise.all(batchPromises);
+                const validResults = batchResults.filter(result => result !== null);
+                
+                results.push(...validResults);
+                
+                updateStatus(`已扫描 ${scannedCount}/${totalSymbols}，找到 ${results.length} 个符合条件合约`);
+                
+                // 添加延迟避免触发API限制
+                if (i + maxConcurrentRequests < symbols.length) {
+                    await new Promise(resolve => setTimeout(resolve, 50));
+                }
+            }
+            
+            return results;
+        }
+        
+        // 显示筛选结果
+        function displayResults(results) {
+            const resultsBody = $('#resultsBody');
+            resultsBody.empty();
+            
+            if (results.length === 0) {
+                $('#resultsInfo').html('未找到符合条件的合约').show();
+                $('#resultsTable').hide();
+                return;
+            }
+            
+            // 按最大涨幅排序（从大到小）
+            results.sort((a, b) => b.maxIncrease - a.maxIncrease);
+            //============================================================================================
+            $("#chart").click(function(){
+            	startShow(results,$('#klineInterval').val());
+				chartTips(4)
+            })
+            
+            //============================================================================================
+            //============================================================================================
+            
+            results.forEach(result => {
+                const row = $('<tr></tr>');
+                
+                // 确定涨跌幅颜色
+                const changeClass = result.priceChange24h >= 0 ? 'positive' : 'negative';
+                const changeSign = result.priceChange24h >= 0 ? '+' : '';
+                
+                row.append(`<td><a href="https://www.binance.com/zh-CN/futures/${result.symbol}" target="_blank" class="symbol-link">${result.symbol}</a></td>`);
+                row.append(`<td>$${result.currentPrice.toFixed(4)}</td>`);
+                row.append(`<td class="${changeClass}">${changeSign}${result.priceChange24h.toFixed(2)}%</td>`);
+                row.append(`<td class="positive">+${result.maxIncrease.toFixed(2)}%</td>`);
+                row.append(`<td>${formatTime(result.increaseTime)}</td>`);
+                row.append(`<td>$${result.startPrice.toFixed(4)}</td>`);
+                row.append(`<td>$${result.highestPrice.toFixed(4)}</td>`);
+                row.append(`<td>${result.klineCount}</td>`);
+                row.append(`<td>${result.interval}</td>`);
+                row.append(`<td>${result.timestamp}</td>`);
+                
+                resultsBody.append(row);
+            });
+            
+            const threshold = $('#priceIncreaseThreshold').val();
+            const interval = $('#klineInterval').find('option:selected').text();
+            const limit = $('#klineLimit').val();
+            
+            $('#resultsInfo').html(`找到 ${results.length} 个合约在分析期间内涨幅超过 ${threshold}%（K线尺度: ${interval}，分析根数: ${limit}，按最大涨幅排序）`).show();
+            $('#resultsTable').show();
+        }
+        
+        // 开始筛选
+        async function startScanning() {
+            if (isScanning) return;
+            
+            isScanning = true;
+            $('#startBtn').prop('disabled', true);
+            $('#stopBtn').prop('disabled', false);
+            $('#errorContainer').empty();
+            $('#resultsTable').hide();
+            $('#resultsInfo').hide();
+            
+            const interval = $('#klineInterval').val();
+            const limit = parseInt($('#klineLimit').val());
+            const threshold = parseFloat($('#priceIncreaseThreshold').val());
+            const speed = $('#speedOption').val();
+            
+            // 验证输入
+            if (limit < 2 || limit > 500) {
+                showError('分析K线根数必须在10-500之间');
+                stopScanning();
+                return;
+            }
+            
+            if (threshold <= 0 || threshold > 1000) {
+                showError('涨幅阈值必须在0-1000之间');
+                stopScanning();
+                return;
+            }
+            
+            try {
+                // 获取交易对列表
+                allSymbols = await fetchFuturesSymbols();
+                if (allSymbols.length === 0) {
+                    stopScanning();
+                    return;
+                }
+                
+                updateStatus(`将扫描全部 ${allSymbols.length} 个交易对，寻找涨幅超过 ${threshold}% 的合约`);
+                
+                // 执行筛选
+                const results = await batchScanSymbols(allSymbols, interval, limit, threshold, speed);
+                
+                // 显示结果
+                displayResults(results);
+                
+                updateStatus(`筛选完成，共找到 ${results.length} 个涨幅超过 ${threshold}% 的合约`);
+            } catch (error) {
+                const errorMsg = `筛选过程中出错: ${error.message}`;
+                updateStatus(errorMsg);
+                showError(errorMsg);
+            }
+            
+            stopScanning();
+        }
+        
+        // 停止筛选
+        function stopScanning() {
+            isScanning = false;
+            $('#startBtn').prop('disabled', false);
+            $('#stopBtn').prop('disabled', true);
+        }
+        
+        // 页面加载完成后初始化
+        $(document).ready(function() {
+			
+			$('#numK').val(200).change();
+            // 绑定按钮事件
+            $('#startBtn').click(startScanning);
+            $('#stopBtn').click(stopScanning);
+            
+            updateStatus('准备就绪，请设置涨幅阈值并点击"开始筛选"');
+			
+			// $("#klineInterval").change(function(){
+			// 	var val=$(this).val();
+			// 	var unit=val.slice(-1)
+			// 	var a=parseInt(val),b=parseInt($("#klineLimit").val());
+				
+			// 	$("#res").html(timeUnit((a*b+unit),2))
+			// });
+			// $('#klineLimit').on('input', function() {
+				
+			// });
+			
+			
+			
+        });
+    </script>
+</body>
+</html>
