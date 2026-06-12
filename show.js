@@ -1,6 +1,6 @@
            $("body").css("position","relative");
 		   $('<span id="tipsBox"></span>').appendTo($("body"));
-		   $('<div id="localBox"></div>').appendTo($("body"));
+		   $('<div id="localBox" class="show-pc"></div>').appendTo($("body"));
 		   $('<div id="breakList">1231233</div>').appendTo($("body"));
 		   //生成本地数据读取
 		   var $dom_local=$('<select id="local"></select>');
@@ -93,29 +93,29 @@
 						<option value="1000">1000</option>
 					</select>
 					
-					<span class="label">refresh</span>
-					<input type="checkbox" id="refresh">
+					<span class="show-pc">
+						<span class="label">refresh</span>
+						<input type="checkbox" id="refresh">
 					
-					<span class="label">double</span>
-					<input type="checkbox" id="width" checked="">
+						<span class="label">double</span>
+						<input type="checkbox" id="width" checked="">
 					
-					<span class="label">
-						<input type="text" id="coinglass" style="width:100px" placehoder="coinglass">
-						<button id="goCoinglass">>>></button>
-					</span>
-					<span class="label">
-						<input type="text" id="targetPrice" style="width:100px">
-						<button id="targetBtn">set</button>
-					</span>
+						<span class="label">
+							<input type="text" id="coinglass" style="width:100px" placehoder="coinglass">
+							<button id="goCoinglass">>>></button>
+						</span>
+						<span class="label">
+							<input type="text" id="targetPrice" style="width:100px">
+							<button id="targetBtn">set</button>
+						</span>
 					
-					<span class="label msg-box">
-						<span id="msg">noMsg</span></span>
+						<span class="label msg-box">
+							<span id="msg">noMsg</span></span>
 						<button id="msgBtn">Copy</button>
+						<span class="label">
+							<button id="backupBtn">Backup</button>
+						</span>
 					</span>
-					<span class="label">
-						<button id="backupBtn">Backup</button>
-					</span>
-					
 				</div>
 		   `)
 		   

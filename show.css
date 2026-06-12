@@ -238,3 +238,16 @@ a{color: yellow;
 			background-color: rgba(0,0,0,0.2);
 			color: white;
 		}
+		
+		
+		/* 默认：手机端隐藏 */
+		.show-pc {
+		  display: none;
+		}
+		
+		/* 电脑端（≥768px 或 ≥992px 常用）：显示 */
+		@media (min-width: 768px) {
+		  .show-pc {
+		    display: block; /* 或 inline / flex，看你的布局 */
+		  }
+		}

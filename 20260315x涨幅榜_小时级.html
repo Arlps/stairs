@@ -421,12 +421,39 @@
 			max-height: 65px; overflow-y: scroll
 		}
 		
+	
 		#signal-container {
-			 display: flex;
-			  flex-wrap: nowrap; /* 不换行，所有表格并排 */
-			  width: 100%;
-			  gap: 8px; /* 可选：设置间距 */
+		    display: flex;
+			flex-wrap: nowrap; /* 不换行，所有表格并排 */
+		    flex-wrap: wrap;       /* 改为允许换行 */
+		    width: 100%;
+		    gap: 8px;
 		}
+		
+		/* 电脑端：每行显示多个 */
+		@media (min-width: 769px) {
+		    #signal-container {
+		        flex-wrap: nowrap;  /* 电脑端不换行，水平并排 */
+		    }
+		    .signal-box {
+		        flex: 1;
+		        min-width: 150px;
+		    }
+		}
+		
+		/* 移动端：垂直堆叠 */
+		@media (max-width: 768px) {
+		    #signal-container {
+		        flex-direction: column; /* 垂直排列 */
+		        flex-wrap: nowrap;
+		    }
+		    .signal-box {
+		        width: 100%;          /* 每个盒子占满整行 */
+		        flex: none;           /* 取消 flex 伸缩 */
+		        max-height: none;     /* 取消高度限制，让内容全部显示 */
+		    }
+		}
+		
 		.signal-box{
 			flex: 1;
 			    min-width: 0;
@@ -459,9 +486,9 @@
 	
 	<!-- 涨幅版板块 -->
 	<div>
-		<span> <input type="checkbox" id="autoChart">自动加载图表</span>
+		<!-- <span> <input type="checkbox" id="autoChart" >自动加载图表</span>
 		( <span class="title-interval"></span> )
-		<button id="loadHistoryBtn">History</button>
+		<button id="loadHistoryBtn class="show-pc">History</button> -->
 		<span id="scan_time"></span> 
 		<button id="scan">Scan</button>
 		<span id="symbol_now"></span> 
@@ -592,7 +619,7 @@
 			
 			//
 			var $now=(new Date()).toLocaleString('zh-CN', timeOption);
-			$("#scan_time").html("初始化："+$now);
+			// $("#scan_time").html("初始化："+$now);
 			
 			//到指定时刻定时刷新
 			startTimer();
@@ -733,10 +760,10 @@
 			finished=false;
 			//获取每次扫描的时间并存入本地存储
 			var $now=(new Date()).toLocaleString('zh-CN', timeOption);
-			$("#scan_time").html($now);
-			let localTime=getLocal("scanTime1and5");
-			localTime.push($now);
-			setLocal("scanTime1and5",localTime)
+			// $("#scan_time").html($now);
+			// let localTime=getLocal("scanTime1and5");
+			// localTime.push($now);
+			// setLocal("scanTime1and5",localTime)
 			
 			
 			Acounter=0;
