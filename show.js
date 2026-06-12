@@ -540,7 +540,7 @@
 			    const chartBox = $(`
 			        <div class="chart-box ${widthClass}" id="${chartId}" data-name="${symbol}">
 			            <div class="chart-header">
-			                <div class="symbol-info">
+			                <div class="symbol-info show-pc">
 								
 			                    <span class="symbol-name" data-symbol="${symbol}">${symbol}</span>
 								<a class="coinglass" href="https://www.coinglass.com/tv/zh/Binance_${symbol}" target="_blank">></a>

@@ -313,6 +313,12 @@
 				height: 700px!important;
 				position: relative;
 		}
+		@media (max-width: 768px) {
+		    .chart-box {
+		        height: 300px !important;
+		        width: 100% !important;  /* 可选：移动端宽度也改为全屏 */
+		    }
+		}
 		.funding{
 			position: absolute;
 			left: 10px;
@@ -464,6 +470,12 @@
 			    padding: 1px;
 			    background: rgba(255, 255, 255, 0.2);
 				background-color: black;
+		
+		}
+		@media (max-width: 768px) {
+		    .signal-box {
+		        width: 80% !important;  /* 可选：移动端宽度也改为全屏 */
+		    }
 		}
 		.signal-box table{
 			 width: 100%; /* 表格占满容器 */
