@@ -631,7 +631,7 @@
 			
 			//
 			var $now=(new Date()).toLocaleString('zh-CN', timeOption);
-			// $("#scan_time").html("初始化："+$now);
+			$("#scan_time").html("初始化："+$now);
 			
 			//到指定时刻定时刷新
 			startTimer();
@@ -772,7 +772,7 @@
 			finished=false;
 			//获取每次扫描的时间并存入本地存储
 			var $now=(new Date()).toLocaleString('zh-CN', timeOption);
-			// $("#scan_time").html($now);
+			$("#scan_time").html($now);
 			// let localTime=getLocal("scanTime1and5");
 			// localTime.push($now);
 			// setLocal("scanTime1and5",localTime)
@@ -1548,8 +1548,8 @@
 		}
 		
 		function x_start0(symbol, item, arr, num) {
-			if(symbol=="MYXUSDT" && item=="4h"){
-				console.log(11111111)
+			if(symbol=="GRASSUSDT" && item=="1d"){
+				console.log(arr)
 			}
 			
 		    if (!arr || arr.length < num) {
@@ -1557,21 +1557,14 @@
 		    }
 		
 		    let pre=10;
-			if(item=="30m"){ pre=10}
-			else if(item=="1h"){ pre=10}
-			else if(item=="2h"){ pre=10}
-			else if(item=="4h"){ pre=5}
-			else{ pre=2}
-			
-		    let per = 0.01;
-			if(item=="30m"){ per=0.01}
-			else if(item=="1h"){ per=0.01}
-			else if(item=="2h"){ per=0.01}
-			else if(item=="4h"){ per=0.025}
-			else{ per=0.025}
-			
-			
-		
+			let per = 0.01;
+			let vol2=1000000;
+			    if(item=="30m"){ pre=10;per=0.01;vol2=500000;}
+			else if(item=="1h"){ pre=10;per=0.02;vol2=500000}
+			else if(item=="2h"){ pre=10;per=0.02;vol2=1000000}
+			else if(item=="4h"){ pre=5;per=0.02;vol2=2000000;}
+			               else{ pre=2;per=0.025;vol2=2000000;}
+						   
 		    // num 只是 A 的候选区间，不包含 pre
 		    const klines = arr.slice(-(num + pre + 2));
 		
@@ -1589,6 +1582,9 @@
 				// }
 		        // 条件1：A必须是上涨K线
 		        if (A.close <= A.open) continue;
+				
+				//A的成交额大于1M
+				if(A.quoteVolume<vol2) continue;
 		
 		        // A的涨幅
 		        const aChange = (A.close - A.open) / A.open;
@@ -1597,29 +1593,45 @@
 		        // 取A前面的pre根K线
 		        const preKlines = klines.slice(i - pre, i);
 		
-		        // 条件2：A涨幅大于前面pre根中任意一根上涨K线的涨幅
-		        let riseFlag = false;
-		        for (const prev of preKlines) {
-		            if (prev.close > prev.open) {
-		                const prevChange = (prev.close - prev.open) / prev.open;
-		                if (aChange > prevChange) {
-		                    riseFlag = true;
-		                    break;
-		                }
-		            }
-		        }
-		        if (!riseFlag) continue;
+		       // 条件2：A涨幅大于前面pre根中任意一根上涨K线的涨幅
+		       // 如果没有上涨K线，则自动满足条件
+		       let riseFlag = false;
+		       let hasUpKline = false;
+		       for (const prev of preKlines) {
+		           if (prev.close > prev.open) {
+		               hasUpKline = true;
+		               const prevChange = (prev.close - prev.open) / prev.open;
+		               if (aChange > prevChange) {
+		                   riseFlag = true;
+		                   break;
+		               }
+		           }
+		       }
+		       // 如果没有阳线，或者A的涨幅大于某根阳线，则通过
+		       if (hasUpKline && !riseFlag) continue;
 				
 				// 条件3：A成交额在 pre 根中的“上涨K线”里至少排第二
 				// 上涨K线不足2根，则直接跳过这个排名判断
 				const upKlines = preKlines.filter(k => k.close > k.open);
 				
-				if (upKlines.length >= 2) {
-				    const upVolumes = upKlines
+				//条件3：A成交额在 pre 根中的“上涨K线”里至少排第二
+				// if (upKlines.length >= 2) {
+				//     const upVolumes = upKlines
+				//         .map(k => k.quoteVolume)
+				//         .sort((a, b) => b - a);
+				
+				//     if (A.quoteVolume < upVolumes[1]) {
+				//         continue;
+				//     }
+				// }
+				
+				// 条件3：A成交额在 pre 根中的所有K线里至少排第二
+				if (preKlines.length >= 2) {
+				    const allVolumes = preKlines
 				        .map(k => k.quoteVolume)
 				        .sort((a, b) => b - a);
 				
-				    if (A.quoteVolume < upVolumes[1]) {
+				    if (A.quoteVolume < allVolumes[1]) {
 				        continue;
 				    }
 				}
@@ -1635,8 +1647,8 @@
 		        const n2Change = (next2.close - next2.open) / next2.open;
 		
 		        // 条件4：后续两根涨幅绝对值 < A涨幅的 1/7
-		        if (Math.abs(n1Change) >= aChange / 7) continue;
-		        if (Math.abs(n2Change) >= aChange / 7) continue;
+		        if (Math.abs(n1Change) >= aChange / 6) continue;
+		        if (Math.abs(n2Change) >= aChange / 6) continue;
 		
 		        // 条件5：后续两根整根K线长度 < A的长度
 		        const n1Range = next1.high - next1.low;
@@ -1734,9 +1746,9 @@
 		        if (bChange >= aChange / 5) continue;
 		
 		        // 7. B成交量 < A成交量1/5
-		        if (B.quoteVolume >= A.quoteVolume / 5) {
-		            continue;
-		        }
+		        // if (B.quoteVolume >= A.quoteVolume / 5) {
+		        //     continue;
+		        // }
 		
 		        // 命中
 		        if (typeof collect_signal === 'function') {
@@ -1818,6 +1830,104 @@
 		    return false;
 		}
 		
+		//箱体回踩
+		function x_box(symbol, item, arr,num) {
+		  // 数据量不足直接返回
+		  if (!arr || arr.length < 55) return false;
+		  if (!arr || arr.length < 201) return false;
+		  arr = arr.slice(-num);
+		
+		  // ── 工具函数 ──────────────────────────────────────────────
+		  // 计算一段K线的典型价格宽度（用于判断"触及"容忍度）
+		  function avgRange(klines) {
+		    let sum = 0;
+		    for (const k of klines) sum += (k.high - k.low);
+		    return sum / klines.length;
+		  }
+		
+		  // ── 参数 ──────────────────────────────────────────────────
+		  const MIN_BOX_LEN        = 50;   // 箱体最少K线数
+		  const MIN_TOUCH_COUNT    = 3;    // 最少触顶次数
+		  const MIN_TOUCH_GAP      = 5;    // 相邻触顶最少间隔根数
+		  const BREAK_MIN          = 2;    // 突破K线最少根数
+		  const BREAK_MAX          = 10;   // 突破K线最多根数
+		  const TOUCH_RATIO        = 0.003; // 触及容忍比例（价格的 0.3%）
+		  const BREAK_RATIO        = 0.005; // 突破判定比例（close > resistance * (1 + ratio)）
+		  const ABOVE_RATIO        = 0.98;  // 突破后"基本在上方"判定（close > resistance * ratio）
+		
+		  const totalLen = arr.length;
+		
+		  // ── 枚举箱体结束位置（箱体至少50根，后面至少留2根突破）──
+		  for (let boxEnd = MIN_BOX_LEN - 1; boxEnd <= totalLen - BREAK_MIN - 1; boxEnd++) {
+		    const boxArr = arr.slice(0, boxEnd + 1);
+		
+		    // 1. 找箱体最高点作为候选阻力位（取所有K线 high 的最大值）
+		    let resistance = -Infinity;
+		    for (const k of boxArr) if (k.high > resistance) resistance = k.high;
+		
+		    // 动态容忍带 = 平均波幅 × 1.5 或价格的 TOUCH_RATIO，取较大值
+		    const tol = Math.max(resistance * TOUCH_RATIO, avgRange(boxArr) * 1.5);
+		
+		    // 2. 找触顶：high 在 [resistance - tol, resistance] 范围内
+		    //    且每处之间距离 >= MIN_TOUCH_GAP
+		    const touchIndices = [];
+		    for (let i = 0; i < boxArr.length; i++) {
+		      const k = boxArr[i];
+		      if (k.high >= resistance - tol && k.high <= resistance + tol * 0.3) {
+		        // 与上一个触顶的间距要 >= MIN_TOUCH_GAP
+		        if (
+		          touchIndices.length === 0 ||
+		          i - touchIndices[touchIndices.length - 1] >= MIN_TOUCH_GAP
+		        ) {
+		          touchIndices.push(i);
+		        }
+		      }
+		    }
+		    if (touchIndices.length < MIN_TOUCH_COUNT) continue;
+		
+		    // 3. 检测箱体之后的突破：close 持续高于 resistance（2~10根）
+		    let breakStart = -1;
+		    let breakEnd   = -1;
+		
+		    for (let j = boxEnd + 1; j < Math.min(totalLen, boxEnd + 1 + BREAK_MAX); j++) {
+		      if (arr[j].close > resistance * (1 + BREAK_RATIO)) {
+		        if (breakStart === -1) breakStart = j;
+		        breakEnd = j;
+		      } else {
+		        // 一旦收盘跌回阻力位以下，突破中断
+		        if (breakStart !== -1) break;
+		      }
+		    }
+		
+		    if (breakStart === -1) continue;
+		    const breakLen = breakEnd - breakStart + 1;
+		    if (breakLen < BREAK_MIN || breakLen > BREAK_MAX) continue;
+		
+		    // 4. 突破后的所有剩余K线（breakEnd 之后）基本都在阻力位之上
+		    //    且其中至少有一根 low 触及阻力位（回踩）
+		    const afterBreak = arr.slice(breakEnd + 1);
+		    if (afterBreak.length === 0) continue;
+		
+		    // 4a. 基本在上方：所有 close >= resistance * ABOVE_RATIO
+		    const allAbove = afterBreak.every(k => k.close >= resistance * ABOVE_RATIO);
+		    if (!allAbove) continue;
+		
+		    // 4b. 至少有一根回踩：low 触及阻力位（low 在 [resistance - tol, resistance + tol]）
+		    const hasRetest = afterBreak.some(
+		      k => k.low >= resistance - tol && k.low <= resistance + tol
+		    );
+		    if (!hasRetest) continue;
+		
+		    // ── 所有条件成立 ─────────────────────────────────────────
+		    const breakCandle = arr[breakStart]; // 第一根突破K线
+		    collect_signal(symbol, item, "box"+resistance, breakCandle.time);
+		    return true;
+		  }
+		
+		  return false;
+		}
+		
+		
 		//信号判断主函数！！！！！！！！！！
 		function redAlert(symbol, klineData){
 			if(symbol=="USDCUSDT"){ return;}
@@ -1837,7 +1947,7 @@
 					// x_start(symbol, item, arr, 20);
 					// x_start2(symbol, item, arr, 20);
 					x_start0(symbol, item, arr, 40)
-					
+					// x_box(symbol, item, arr,200);
 					// x_turn(symbol,item,arr,3)
 					// x_crossH(symbol, item, arr);
 					// x_crossPro2(symbol, item, arr, 20);
