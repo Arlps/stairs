@@ -75,6 +75,7 @@
 						<option value="1h">1h</option>
 						<option value="2h">2h</option>
 						<option value="4h">4h</option>
+						<option value="8h">8h</option>
 						<option value="12h">12h</option>
 						<option value="1d">1d</option>
 						<option value="1w">1w</option>
@@ -130,6 +131,7 @@
 			    { text: '1h', value: '1h'},
 				{ text: '2h', value: '2h'},
 			    { text: '4h', value: '4h' },
+				{ text: '8h', value: '8h' },
 				{ text: '12h', value: '12h' },
 			    { text: '1d', value: '1d' },
 			    { text: '1w', value: '1w' }
@@ -408,7 +410,7 @@
 				// }
 			});
 			
-			//添加到定点复盘储存-下降
+			//添加到定点复盘储存-承接
 			$(".chart-container").on("click", ".chart-box .review2", function() {
 				const name = $(this).siblings('.symbol-name').text();
 				let $review= getLocal("AnalysisData4");
@@ -551,14 +553,15 @@
 								<span class="label2">监</span>
 								<input type="checkbox" name="review-${symbol}" class="review" />
 								<span class="label2">涨</span>
-								<input type="checkbox" name="review2-${symbol}" class="review2" />
-								<span class="label2">跌</span>
+								
 								<input type="checkbox" name="signal-${symbol}" class="signal" />
 								<span class="label2">Sg</span>
 								<input type="checkbox" name="signal-${symbol}" class="structure" />
 								<span class="label2">构</span>
 								<input type="checkbox" name="signal-${symbol}" class="stairs" />
 								<span class="label2">梯</span>
+								<input type="checkbox" name="review2-${symbol}" class="review2" />
+								<span class="label2">承</span>
 								
 			                    <div class="price-info">
 			                        <span class="price" id="price-${symbol}" style="display:none">--</span>
@@ -796,7 +799,10 @@
 			    var klineData = rawData.map(item => {
 			        const open = parseFloat(item[1]);
 			        const close = parseFloat(item[4]);
+					const high = parseFloat(item[2]);
+					const low = parseFloat(item[3]);
 			        const changePercent = ((close - open) / open * 100).toFixed(2);
+					const wavePercent=((high - low) / low * 100).toFixed(2);
 			        return {
 			            timestamp: item[0],//时间戳
 			            open: open,
@@ -806,7 +812,8 @@
 			            volume: parseFloat(item[5]),
 			            turnover: parseFloat(item[7]),
 			            color: open > close ? downColor : upColor,
-			            changePercent: changePercent
+			            changePercent: changePercent,
+						wavePercent:wavePercent
 			        };
 			    });
 				// console.log(klineData.length)
@@ -815,7 +822,17 @@
 			    const lastKline = klineData[klineData.length - 1];
 			    chart.lastPrice = lastKline.close;
 			    // updatePriceDisplay(symbol, lastKline.close, lastKline.open);
-			   klineData=fillArr(klineData,100,"front")
+			   klineData=fillArr(klineData,100,"front");
+			   
+			   //构建完 klineData 后，计算最高成交量对应的成交额
+			   var maxVolumeTurnover = '';
+			   var maxVolume = -Infinity;
+			   for (var i = 0; i < klineData.length; i++) {
+			       if (klineData[i].volume > maxVolume && klineData[i].turnover !== undefined) {
+			           maxVolume = klineData[i].volume;
+			           maxVolumeTurnover = klineData[i].turnover;
+			       }
+			   }
 				 // fillArr(klineData,200,"end")
 			    // 准备ECharts数据
 			    const dates = klineData.map(item => {
@@ -830,7 +847,7 @@
 			            hour12: false
 			        })//.replace(/\//g, '-');
 			    });
-				
+				// console.log(klineData)
 				// console.log("x轴时间")
 				// console.log(dates);  //echart时间格式=> "2025-11-03 06:00:00"
 			    
@@ -893,8 +910,9 @@
 									// '收盘: ' + data[1] + '<br/>',
 									// '最低: ' + data[2] + '<br/>',
 									// '最高: ' + data[3] + '<br/>',
-									"<span class='ctips3'>涨跌幅:</span> <span class='ctips'>"+kline.changePercent + '%</span><br/>',
-									"<span class='ctips3'>成交额:</span> <span class='ctips'>"+energyback(kline.turnover.toFixed(2)) + '</span><br/>',
+									"<span class='ctips3'>涨:</span> <span class='ctips'>"+kline.changePercent + '%</span>',
+									"<span class='ctips3'>振:</span> <span class='ctips'>"+kline.wavePercent + '%</span><br/>',
+									"<span class='ctips3'>量:</span> <span class='ctips'>"+energyback(kline.volume.toFixed(2)) + "</span><span class='ctips3'>; 额:</span> <span class='ctips'>"+energyback(kline.turnover.toFixed(2)) + "</span><br/>",
 									"<span class='ctips2'>"+params[0].axisValue.split(" ")[0] + '</span><br/>',
 									"<span class='ctips2'>"+params[0].axisValue.split(" ")[1]+ '</span>'
 								].join('');
@@ -1135,29 +1153,51 @@
 			                yAxisIndex: 1,
 			                data: klineData.map((item, index) => {
 			                    return {
-			                        // value: item.volume,
-									value:item.turnover,
+			                        value: item.volume,
+									// value:item.turnover,
 			                        itemStyle: {
 			                            color: item.color
 			                        }
 			                    };
 			                }),
-							markPoint: {
-								data: [
-								  {
-									type: 'max', // 自动识别最大值
-									name: '最高值', // 显示的标签名称
-									symbol: 'arrow',
-									symbolSize: 0.5,
-									label:{
-										color: '#fff',
-										position: 'top',  // 在标记点上方显示
-										formatter:function(params){
-											return energyback((params.value).toFixed(2))
-										}
-									}
-								  }
-								]
+							//显示柱子代表的最高价
+							// markPoint: {
+							// 	data: [
+							// 	  {
+							// 		type: 'max', // 自动识别最大值
+							// 		name: '最高值', // 显示的标签名称
+							// 		symbol: 'arrow',
+							// 		symbolSize: 0.5,
+							// 		label:{
+							// 			color: '#fff',
+							// 			position: 'top',  // 在标记点上方显示
+							// 			formatter:function(params){
+							// 				console.log(params)
+							// 				return energyback((params.value).toFixed(2));
+											
+											
+							// 			}
+							// 		}
+							// 	  }
+							// 	]
+							//   },
+							  //显示对应的成交额
+							  markPoint: {
+							      data: [
+							          {
+							              type: 'max', // 自动识别最大值
+							              name: '最高值',
+							              symbol: 'arrow',
+							              symbolSize: 0.5,
+							              label:{
+							                  color: '#fff',
+							                  position: 'top',
+							                  formatter: function(params) {
+												  return energyback(maxVolumeTurnover.toFixed(2));
+							                  }
+							              }
+							          }
+							      ]
 							  }
 			                // barWidth: '60%',
 			                // barCategoryGap: '20%'
@@ -1248,7 +1288,7 @@
 				    }
 				
 				if(num/1000000000>=1){
-					return parseInt(num/1000000000)+"B";
+					return parseInt(num/100000000)/10+"B";
 				}else if(num/1000000>=1){
 					return parseInt(num/1000000)+"M";
 				}else if(num/1000>=1){
@@ -1604,9 +1644,11 @@
 			    else if(interval=="1h"){targetMin=60}
 			    else if(interval=="2h"){targetMin=120}
 			    else if(interval=="4h"){targetMin=240}
+				else if(interval=="8h"){targetMin=480}
 			    else if(interval=="12h"){targetMin=720}
 			    else if(interval=="1d"){targetMin=1440}
-			    
+			    else if(interval=="1w"){targetMin=10080}
+				
 			    if (!klines || klines.length === 0) return [];
 			    
 			    klines.sort((a, b) => a[0] - b[0]);
@@ -1714,8 +1756,10 @@
 				else if(interval=="1h"){targetMin=60}
 				else if(interval=="2h"){targetMin=120}
 				else if(interval=="4h"){targetMin=240}
+				else if(interval=="8h"){targetMin=480}
 				else if(interval=="12h"){targetMin=720}
 				else if(interval=="1d"){targetMin=1440}
+				else if(interval=="1w"){targetMin=10080}
 				
 				if (!klines || klines.length === 0) return [];
 			
