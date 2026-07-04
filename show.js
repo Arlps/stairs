@@ -6,9 +6,18 @@
 		   var $dom_local=$('<select id="local"></select>');
 		   var $dom_localBtn=$('<button id="loadLocal">加载</button>');
 		   var allLocal=getLocal("local_daily");
-		   for(var key in allLocal){
-		   	$dom_local.append($("<option value="+key+">"+key+"</option>"));
+		   //正序生成
+		   // for(var key in allLocal){
+		   // 	$dom_local.append($("<option value="+key+">"+key+"</option>"));
+		   // }
+		   // 反序生成
+		   var optionkeys = Object.keys(allLocal);  // 获取所有 key
+		   optionkeys.reverse();  // 反转数组顺序
+		   for (var i = 0; i < optionkeys.length; i++) {
+		       var key = optionkeys[i];
+		       $dom_local.append($("<option value='" + key + "'>" + key + "</option>"));
 		   }
+		   
 		   $("#localBox").append($dom_local);
 		   $("#localBox").append($dom_localBtn);
 		   //添加到历史储存
@@ -461,6 +470,21 @@
 				// }
 			});
 			
+			//添加到定点复盘储存-structure
+			$(".chart-container").on("click", ".chart-box .rocket", function() {
+				const name = $(this).siblings('.symbol-name').text();
+				let $review= getLocal("AnalysisData3");
+					$review.push({
+						name:name,
+						time:"",
+						tip:"",
+						id:randomID()
+					})
+					setLocal("AnalysisData3",$review);
+					$("#tipsBox").html(`已添加 "${name}" 到主升浪复盘数据`).removeClass("tips-fail").fadeIn(300).delay(1000).fadeOut(1000);
+				// }
+			});
+			
 			
 			//添加到定点复盘储存-stairs
 			$(".chart-container").on("click", ".chart-box .stairs", function() {
@@ -532,7 +556,7 @@
 				
 				var positionArr=allSymbolsArr.indexOf(symbol)+1;
 				var totalnum=allSymbolsArr.length;
-			    const chartId = `chart-${symbol}`;
+			    const chartId = `chart-${symbol}-${Math.random().toString().slice(-4)}`;
 				if($("#"+chartId).length>0){
 					return;
 				}
@@ -562,7 +586,9 @@
 								<span class="label2">梯</span>
 								<input type="checkbox" name="review2-${symbol}" class="review2" />
 								<span class="label2">承</span>
-								
+								<input type="checkbox" name="review2-${symbol}" class="rocket" />
+								<span class="label2">主</span>
+							
 			                    <div class="price-info">
 			                        <span class="price" id="price-${symbol}" style="display:none">--</span>
 			                        <span class="price-change" id="change-${symbol}" style="display:none">--</span>
@@ -1198,7 +1224,28 @@
 							              }
 							          }
 							      ]
-							  }
+							  },
+							//   markPoint: {
+							// 	data: [
+							// 		{
+							// 			type: 'max',
+							// 			name: '最高值',
+							// 			symbol: 'arrow',
+							// 			symbolSize: 0.5,
+							// 			label: {
+							// 				color: '#fff',
+							// 				position: 'top',
+							// 				formatter: function(params) {
+							// 					// params.value 就是当前被标记的那根柱子的 volume 值
+							// 					// 但你想显示 turnover，需要通过 dataIndex 去取
+							// 					const idx = params.dataIndex;
+							// 					const turnover = klineData[idx] ? klineData[idx].turnover : params.value;
+							// 					return energyback(turnover.toFixed(2));
+							// 				}
+							// 			}
+							// 		}
+							// 	]
+							// }
 			                // barWidth: '60%',
 			                // barCategoryGap: '20%'
 			            }
@@ -1379,90 +1426,42 @@
 				},2500)
 			}
 			
-			function addMarkPoint(symbol,time){
-				setTimeout(function(){
-					//设置标记点
-					var dom = ($("#chart-"+symbol).children(".chart-content"))[0];
-					var $chart = echarts.getInstanceByDom(dom);
-					if (!$chart) return;
-					const datex=formatTimex(time)//"2026/03/30 11:45:00";
-					$chart.setOption({
-						series: [{
-							markPoint: {
-								data: [{
-									coord: [datex, 'max'] ,
-									y: '5%',                // 相对图表底部位置
-									symbol: 'arrow',
-									symbolSize: 10,
-									symbolRotate: 180, 
-									itemStyle: { color: '#b3ff00'},
-									label: { color: '#fff',  formatter: '' }
-								}]
-							}
-						}]
-					});
-				},200)
-			}
+
 			
 			function addMarkPointInside($chart,time,signal){
 				
-					const datex=formatTimex(time)//"2026/03/30 11:45:00";
-					// console.log(time,new Date(time),datex)
-					$chart.setOption({
-						series: [{
-							markPoint: {
-								data: [{
-									coord: [datex, 'max'] ,
-									y: '5%',                // 相对图表底部位置
-									symbol: 'arrow',
-									symbolSize: 10,
-									symbolRotate: 180, 
-									itemStyle: { color: '#b3ff00'},
-									label: {
-										color: '#fff',
-										formatter: function(params) {
-											// 直接使用外部传入的 signal 变量
-											return signal;
-										},
-										// 可选：调整标签位置和样式
-										 position: 'top',    // 关键：文字在符号上方
-										offset: [0, 0],   // 关键：向上偏移10像素
-										fontSize: 16,
-										backgroundColor: 'rgba(0,0,0,0.5)',
-										padding: [0,0]
-									}
-								}]
-							}
-						}]
-					});
-			}
-			
-			function test(){
-				var sss=($("#chart-TRBUSDT").children(".chart-content"))[0];
-				var yyy = echarts.init(sss);
-				var  tar='2025-11-11 14:00:00'
-				var datay = yyy.getOption().xAxis[0].data;
-				if (datay.includes(tar)) {
-					console.log(1111);
-				}else{
-					  alert()
-				};
-				yyy.setOption({
+				const datex=formatTimex(time)//"2026/03/30 11:45:00";
+				// console.log(time,new Date(time),datex)
+				$chart.setOption({
 					series: [{
 						markPoint: {
 							data: [{
-								coord: [tar, 'max'] ,
-								y: '10%',                // 相对图表底部位置
+								coord: [datex, 'max'] ,
+								y: '5%',                // 相对图表底部位置
 								symbol: 'arrow',
 								symbolSize: 10,
 								symbolRotate: 180, 
-								itemStyle: { color: 'yellow'},
-								label: { color: '#fff',  formatter: '' }
+								itemStyle: { color: '#b3ff00'},
+								label: {
+									color: '#fff',
+									formatter: function(params) {
+										// 直接使用外部传入的 signal 变量
+										return signal;
+									},
+									// 可选：调整标签位置和样式
+									 position: 'top',    // 关键：文字在符号上方
+									offset: [0, 0],   // 关键：向上偏移10像素
+									fontSize: 16,
+									backgroundColor: 'rgba(0,0,0,0.5)',
+									padding: [0,0]
+								}
 							}]
 						}
 					}]
 				});
 			}
+			
+			//将时间戳转化为x轴时间格式(补0)
 			function formatTimex(timestamp) {
 			    const date = new Date(timestamp); 
 			    const year = date.getFullYear();
@@ -2005,3 +2004,26 @@
 			
 			    return result;
 			}
+			
+			//统计同时出现多个信号的symbol数量
+			function countDuplicateSymbols(arr) {
+			    // 用于记录每个symbol出现的次数
+			    const symbolCount = {};
+			    
+			    // 遍历数组，统计每个symbol的出现次数
+			    arr.forEach(item => {
+			        const symbol = item.symbol;
+			        symbolCount[symbol] = (symbolCount[symbol] || 0) + 1;
+			    });
+			    
+			    // 统计出现次数大于1的symbol数量
+			    let duplicateCount = 0;
+			    for (const symbol in symbolCount) {
+			        if (symbolCount[symbol] > 1) {
+			            duplicateCount++;
+			        }
+			    }
+			    
+			    return duplicateCount;
+			}
+			
