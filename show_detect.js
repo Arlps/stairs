@@ -93,13 +93,27 @@ function x_start0(symbol, item, arr, num) {
 	    const aRange = A.high - A.low;
 	    const next1 = klines[i + 1];
 	    const next2 = klines[i + 2];
+		
+		// 【新增条件1】A之后的两根K线，最低价不小于A的开盘价
+		if (next1.low < A.open) continue;
+		if (next2.low < A.open) continue;
 				
 	    const n1Change = (next1.close - next1.open) / next1.open;
 	    const n2Change = (next2.close - next2.open) / next2.open;
 				
-	    // A 之后的两根K线，每根的涨跌幅绝对值必须小于 A 涨幅的 1/5=======================
-	    if (Math.abs(n1Change) >= aChange / 5) continue;
-	    if (Math.abs(n2Change) >= aChange / 5) continue;
+	    // 判断两根K线的方向
+	    const n1IsUp = n1Change > 0;
+	    const n2IsUp = n2Change > 0;
+	    
+	    if (n1IsUp !== n2IsUp) {
+	        // 一涨一跌：每根绝对值分别小于 A涨幅的 1/4
+	        if (Math.abs(n1Change) >= aChange / 4) continue;
+	        if (Math.abs(n2Change) >= aChange / 4) continue;
+	    } else {
+	        // 两连涨或两连跌：累计涨跌幅绝对值小于 A涨幅的 1/4
+	        const totalChange = Math.abs(n1Change + n2Change);
+	        if (totalChange >= aChange / 4) continue;
+	    }
 				
 	    //A 之后的两根K线，每根的高低点范围必须小于 A 范围的 1.2 倍=======================
 	    const n1Range = next1.high - next1.low;
@@ -116,6 +130,24 @@ function x_start0(symbol, item, arr, num) {
 }
 
 //大级别承接
+
+// 情况一：单根K线暴跌 + 放量确认
+// M（最后一根K线）：必须是下跌K线，且单根跌幅 超过 50%。
+// A（下一根K线）：
+// 成交量 ≥ M成交量的 0.98倍​ 且 ≥ M成交量本身（即放量）。
+// 若A是下跌K线，其实体占比 ≤ 15%（即十字星/小实体）。
+
+// 情况二：多根K线连续下跌 + 放量确认
+// M区间（至少3根K线）：
+// 长度=3：全部为下跌K线。
+// 长度>3：最多允许 1根​ 上涨K线，且：
+// 涨幅 < 0.2%。
+// 该上涨K线 不在首位或末位。
+// 总跌幅 ≥ 18%。
+// A（M区间后的第一根K线）：
+// 成交量 ≥ M最后一根成交量的 0.98倍。
+// 若A是下跌K线，其实体占比 ≤ 15%。
+
 function bear(symbol, item, arr, num) {
 	// 获取最后 num 根K线（如果数组长度小于 num 则取全部）
 	const candles = arr.length <= num ? arr : arr.slice(arr.length - num);
@@ -135,12 +167,10 @@ function bear(symbol, item, arr, num) {
 	// 查找所有有效的 M 区间，并在其后检查 A
 	// 遍历可能的 M 结束位置
 	// M 必须以 candles[i] 结束，A 是 candles[i+1]
-	if(symbol=="TACUSDT" && item=="1d"){
-		console.log(JSON.stringify(arr))
-	}
+
 	for (let aIdx = 1; aIdx < candles.length; aIdx++) {
 		const A = candles[aIdx]; // A 是 M 后面的那根K线
-		if(symbol=="TACUSDT" && item=="1d" && A.open=="0.019681"){
+		if(symbol=="BTWUSDT" && item=="1d" ){//&& A.open=="0.0502500"){
 			console.log(1)
 		}
 		// 尝试找到一个有效的 M，它以 aIdx-1 结束
@@ -406,3 +436,128 @@ function bamboo(symbol, item, arr, num) {
     
     return false;
 }
+
+
+
+//简单2跌带十字星
+function star(symbol, item, arr, num) {
+    // 检查数据是否足够
+    if (!arr || arr.length === 0 || num <= 0) {
+        return false;
+    }
+	let fallpercent=0;
+	let midpercent=0.2;
+	let dropPercent=0;
+	
+	if (item == "1m") { }
+	else if (item == "5m") { fallpercent=0.1}
+	else if (item == "15m") { fallpercent=0.1}
+	else if (item == "30m") {fallpercent=0.1 }
+	
+	else if (item == "1h") { fallpercent=0.05}
+	else if (item == "2h") {fallpercent=0.1  }
+	else if (item == "4h") { fallpercent=0.1}
+	else if (item == "8h") {fallpercent=0.1 }
+	else if (item == "12h") {fallpercent=0.15 }
+	else if (item == "1d") { fallpercent=0.2 }
+	
+    
+    // 取最后num根K线，如果不够则取全部
+    const checkArr = arr.slice(-Math.min(num, arr.length));
+    
+    // 数据量不够直接返回false（最少需要3根：A + 连续下跌区间至少2根）
+    if (checkArr.length < 3) {
+        return false;
+    }
+    
+    // 从第3根K线开始遍历（因为A前面至少要有2根下跌K线）
+    for (let i = 2; i < checkArr.length; i++) {
+        const current = checkArr[i];
+        
+        // 计算当前K线的各项指标
+        const open = current.open;
+        const close = current.close;
+        const high = current.high;
+        const low = current.low;
+        
+        // 1. 必须是上涨K线（收盘价 > 开盘价）
+        if (close <= open) continue;
+        
+        // K线整体长度
+        const totalLength = high - low;
+        if (totalLength === 0) continue;
+        
+        // 实体长度
+        const bodyLength = Math.abs(close - open);
+        
+        // 2. 实体长度占比 < 5%（十字星）
+        const bodyRatio = bodyLength / totalLength;
+        if (bodyRatio >= midpercent) continue;
+        
+        // 3. 下影线必须大于上影线
+        const upperShadow = high - close;
+        const lowerShadow = open - low;
+        if (lowerShadow <= upperShadow) continue;
+        
+        // 4. 寻找A之前的连续下跌区间M
+        let foundValidM = false;
+        let mLowestPrice = Infinity;
+        
+        // 从A的前一根K线往前找连续下跌K线
+        for (let j = i - 1; j >= 0; j--) {
+            const prevK = checkArr[j];
+            
+            // 如果不是下跌K线（收盘 < 开盘），停止寻找
+            if (prevK.close >= prevK.open) break;
+            
+            // 找到了至少2根下跌K线后，检查总跌幅
+            const downCount = i - j; // 从j到i-1的下跌K线数量
+            if (downCount >= 2) {
+                // 计算总跌幅：从下跌区间第一根的开盘价到最后一根的收盘价
+                const firstOpen = checkArr[j].open;
+                const lastClose = checkArr[i - 1].close;
+                const totalDrop = (firstOpen - lastClose) / firstOpen;
+                dropPercentInt = Math.round(totalDrop * 100); 
+                if (totalDrop > fallpercent) {
+                    foundValidM = true;
+                    
+                    // 计算M区间内的最低价（从j到i-1）
+                    for (let k = j; k < i; k++) {
+                        if (checkArr[k].low < mLowestPrice) {
+                            mLowestPrice = checkArr[k].low;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        
+        if (!foundValidM) continue;
+        
+        // 5. A的最低价必须小于M区间里的最低价
+        if (current.low >= mLowestPrice) continue;
+        
+        // 6. A的成交量必须大于前一根K线90%的成交量
+        if (current.volume <= checkArr[i - 1].volume*0.9) continue;
+        
+		
+        // 所有条件满足，发送信号
+        collect_signal(symbol, item, "十 " + dropPercentInt + "%", current.time);
+		console.log(item+" 十 "+symbol)
+        return true;
+    }
+    
+    return false;
+}
+
+
+// if (item == "1m") { }
+// else if (item == "5m") { }
+// else if (item == "15m") { }
+// else if (item == "30m") { }
+// else if (item == "1h") { }
+// else if (item == "2h") {  }
+// else if (item == "4h") { }
+// else if (item == "8h") { }
+// else if (item == "12h") { }
+// else if (item == "1d") { }

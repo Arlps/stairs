@@ -1380,7 +1380,7 @@
 										symbolSize: 8,
 										symbolRotate: 180, 
 										itemStyle: { color: 'yellow'},
-										label: { color: '#fff',  formatter: '' }
+										label: { color: '#e6ca2b',  formatter: '' }
 									}]
 								}
 							}]
@@ -1416,7 +1416,7 @@
 										symbolSize: 8,
 										symbolRotate: 180, 
 										itemStyle: { color: 'yellow'},
-										label: { color: '#fff',  formatter: '' }
+										label: { color: '#e6ca2b',  formatter: '' }
 									}]
 								}
 							}]
@@ -1443,7 +1443,7 @@
 								symbolRotate: 180, 
 								itemStyle: { color: '#b3ff00'},
 								label: {
-									color: '#fff',
+									color: '#e6ca2b',
 									formatter: function(params) {
 										// 直接使用外部传入的 signal 变量
 										return signal;
