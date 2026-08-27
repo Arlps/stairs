@@ -1,0 +1,17 @@
+{
+  "name": "bit",
+  "version": "1.0.0",
+  "description": "",
+  "main": "jquery.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "https-proxy-agent": "^8.0.0",
+    "level": "^10.0.0",
+    "leveldown": "^6.1.1"
+  }
+}

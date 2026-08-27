@@ -1,0 +1,2460 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+	<meta http-equiv="refresh" content="72000">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heat监控</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        a{ text-decoration: none;}
+        body {
+            background-color: #0d1117;
+            color: #e0e0e0;
+            padding: 4px;
+            min-height: 100vh;
+            overflow-x: hidden;
+			position: relative;
+        }
+        
+        .container {
+            display: flex;
+            gap: 6px;
+            max-width: 100%;
+            height: calc(100vh - 50px);
+        }
+        
+        .control-panel {
+            flex: 0 0 150px;
+            background-color: #161b22;
+            border-radius: 4px;
+            padding: 2px;
+            height: 100%;
+            overflow-y: auto;
+        }
+        
+        .control-panel::-webkit-scrollbar {
+            display: none;
+        }
+        
+        .charts-container {
+            flex: 1;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-content: flex-start;
+            overflow-y: auto;
+            height: 100%;
+        }
+        
+        .chart-wrapper {
+            flex: 0 0 calc(49% - 4px);
+            min-width: 400px;
+            background-color: #161b22;
+            border-radius: 10px;
+            padding: 4px;
+            height: 480px;
+			/* height: 380px; */
+			    border: 3px dashed rgba(0, 0, 0, 0.01);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 4px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid #2d3748;
+        }
+        
+        .chart-title {
+            /* font-weight: bolder; */
+			    letter-spacing: 1px;
+                font-size: 20px;
+                color: #fbe900;
+            text-decoration: none;
+            cursor: pointer;
+        }
+		a{
+			display: inline-block;
+		}
+		.chart-title::first-letter {
+			/* font-size: 24px;
+			font-weight: bold;
+			color: #f96616; */
+		}
+        
+        .chart-title:hover {
+            text-decoration: underline;
+        }
+        
+        .price-info {
+            font-size: 11px;
+            margin-left: 4px;
+            color: #94a3b8;
+        }
+        
+        .chart-actions {
+            display: flex;
+            gap: 2px;
+            flex-wrap: wrap;
+        }
+        
+        .chart-container {
+            /* height: 215px; */
+			/* height: 340px; */
+			height: calc(100% - 29px);
+            width: 100%;
+        }
+        select.volume-target {
+            width: 60px;
+        }
+        .btn {
+            background-color: #f35503;
+            color: white;
+            border: none;
+            border-radius: 2px;
+            padding: 2px 4px!important;
+            font-size: 16px;
+            cursor: pointer;
+			/* font-weight: bold; */
+            transition: background-color 0.2s;
+        }
+        
+        .btn:hover {
+            background-color:#d0ab10;
+        }
+        
+        .btn-danger {
+            background-color: #854848;
+            padding: 2px 3px;
+        }
+        
+        .btn-danger:hover {
+            background-color: #dc2626;
+        }
+        
+        .form-group {
+            margin-bottom: 10px;
+        }
+        
+        label {
+            display: block;
+            margin-bottom: 2px;
+            font-size: 14px;
+            color: #c8dcf8;
+        }
+        
+        input, select {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #374151;
+            border-radius: 2px;
+            background-color: #111827;
+            color: #e0e0e0;
+            font-size: 13px;
+        }
+        .symbol-item.lightShadow{
+            background: rgba(255,255,0,0.15);
+        }
+        .symbol-list {
+            margin-top: 6px;
+            border: 1px solid #374151;
+            border-radius: 2px;
+            padding: 2px;
+            background-color: #111827;
+            /* max-height: 120px; */
+            overflow-y: auto;
+        }
+        
+        .symbol-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 3px;
+            border-bottom: 1px solid #2d3748;
+            font-size: 16px;
+			cursor: pointer;
+        }
+		.btn-box{
+			display: flex; margin-left: auto;
+			/* justify-content: space-between;
+			align-items: center; */
+		}
+        
+        .symbol-item:last-child {
+            border-bottom: none;
+        }
+        
+        .symbol-name {
+            color: yellow;
+                cursor: pointer;
+                text-decoration: none;
+                /* display: inline-block; */
+                /* width: 100px; */
+                overflow: hidden;
+        }
+        span.usdt {
+            font-size: 10px;
+            color: #fff;
+        }
+        .symbol-name:hover {
+            text-decoration: underline;
+        }
+        
+        .alert-indicator {
+                display: inline-block;
+                width: 10px;
+                height: 10px;
+                border-radius: 50%;
+                background-color: #f30202;
+                margin-left: 3px;
+                animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { opacity: 1; }
+            50% { opacity: 0.5; }
+            100% { opacity: 1; }
+        }
+        
+        .status-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background-color: #161b22;
+            padding: 4px 8px;
+            font-size: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-top: 1px solid #2d3748;
+            z-index: 100;
+            height: 40px;
+        }
+        
+        .status-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+			    font-size: 14px;
+        }
+        
+        .status-right {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .alerts-container {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            max-width: 1800px;
+            overflow: hidden;
+        }
+        
+        .alert-item {
+            background-color: #ef4444;
+                color: white;
+                padding: 5px 3px;
+                border-radius: 3px;
+                font-size: 10px;
+                /* font-weight: bold; */
+                white-space: nowrap;
+                /* animation: slideIn 0.3s ease-out; */
+                cursor: pointer;
+        }
+        .alert-item a{color: white;}
+        @keyframes slideIn {
+            from { transform: translateX(100%); opacity: 0; }
+            to { transform: translateX(0); opacity: 1; }
+        }
+        
+		
+		
+        .time-scale-btn {
+            padding: 1px 5px;
+            /* font-size: 9px; */
+            background-color: #374151;
+			font-size: 12px;
+			font-weight: bold;
+        }
+        
+        .time-scale-btn.active {
+            background-color: #3b82f6;
+			
+        }
+        
+        h3 {
+            font-size: 12px;
+            margin-bottom: 8px;
+            color: #e0e0e0;
+        }
+        
+        .empty-chart-message {
+            width: 100%;
+            text-align: center;
+            color: #94a3b8;
+            padding: 10px;
+            font-style: italic;
+            font-size: 12px;
+        }
+        
+        .countdown {
+            color: #3b82f6;
+            font-weight: bold;
+        }
+		/* 新增样式：使标签和输入框在同一行 */
+		.form-row {
+		    display: flex;
+		    align-items: center;
+		    gap: 4px;
+		    margin-bottom: 4px;
+		}
+		
+		.form-row label {
+		    flex: 0 0 auto;
+		    margin-bottom: 0;
+		    white-space: nowrap;
+		}
+		
+		.form-row input, 
+		.form-row select, 
+		.form-row button {
+		    flex: 1;
+		    margin-bottom: 0;
+		}
+		
+		.lightShadow{
+			/* box-shadow: inset 0px 0px 12px 0 rgb(105 185 220); */
+			    border: 3px dashed rgba(255, 255, 0, 0.5);
+				background-color: rgb(91 55 55 / 30%);
+		}
+		#BTCUSDT.lightShadow{
+			border: 3px dashed rgba(255, 0, 0, 0.5);
+			    background: #16273a;
+		}
+		.coinglass {
+		    font-size: 14px;
+		    color: #1bd59c;
+			font-weight: bolder;
+			padding: 1px 5px;
+			background-color: rgba(255,255,255,0.05);
+			border-radius: 5px;
+		}
+		.coinglass:hover{
+			background: #1784c7; color: #fff;border-radius: 5px;
+		}
+		.hide{
+			display: none;
+		}
+		.grey{
+			background-color: rgba(255,255,255,0.2);
+		}
+		.btn-box .btn{
+			    padding: 2px 4px;
+			    border-radius: 2px;
+			    font-size: 12px;
+			    /* font-weight: bold; */
+		}
+		.btn-success{ background-color: #3ba01a;}
+		.targetPrice{ 
+			    width: 60px;
+			    color: #65f5e7;
+			    font-size: 14px;
+			    padding: 2px 0px;
+		}
+		.setBtn{
+			background: #5f615e;
+			    FONT-WEIGHT: BOLD;
+			    color: #fff;
+			    border: none;
+			    padding: 1px 5px;
+			    font-size: 14px;
+			    border-radius: 2px;
+		}
+		.red1{
+			background-color: #c9463b!important;
+		}
+		.yellow1{
+			background-color: #c39a34!important;
+		}
+		.green1{
+			background-color: #86c334!important;
+		}
+		.v{
+			background-color: #435192!important;
+		}
+		#alertBox{
+			position: fixed; bottom: 0;right: 0;
+			height: 800px; width: 250px; background-color: rgba(255,255,255,0.3);
+			    background-color: rgb(0 0 0 / 74%);
+			    display: none;
+			    padding: 10px;
+			display: none;
+		}
+		.showX{
+			display: block!important;
+		}
+		#alertList{
+			height: 100%;
+			    overflow: scroll;    margin-top: 10px;
+		}
+		.alert-li{
+			    background-color: #df2222;
+			    color: white;
+			    padding: 4px 6px;
+			    border-radius: 8px;
+			    font-size: 12px;
+			    /* font-weight: bold; */
+			    /* margin: 24px 0px; */
+			    margin-top: 5px;
+			    width: 200px;
+				    cursor: pointer;
+		}
+		/* 极细滚动条 */
+		::-webkit-scrollbar {
+		    width: 4px;
+		    height: 4px;
+		    background: transparent;
+		}
+		
+		::-webkit-scrollbar-track {
+		    background: rgba(0, 0, 0, 0.05);
+		}
+		
+		::-webkit-scrollbar-thumb {
+		    background: #e8a70e;
+		    border-radius: 2px;
+		}
+		
+		::-webkit-scrollbar-thumb:hover {
+		    background: #d2e807;
+		}
+
+		.alert-li a{color: white;}
+		#closeAlert{
+			     padding: 4px 26px;
+			     background-color: #2a529f;
+			     color: white;
+			     border: none;
+			     border-radius: 2px;
+			     font-size: 14px; cursor:pointer
+		}
+		#clearAlert{
+			       padding: 4px 26px;
+			       background-color: #cb9406;
+			       color: white;
+			       border: none;
+			       border-radius: 2px;
+			       font-size: 14px; cursor:pointer
+		}
+		.alert-tips{ 
+			margin: 0px px;
+			font-size: 10px;
+		}
+		.alert-name{
+			    /* font-weight: bold; */
+			    font-size: 14px;
+		}
+		#alertList .alert-name{
+			display: inline-block; width: 90px;
+		}
+		
+		#alertList .alert-sign {
+		    background-color:  #343a2f;
+		    padding: 1px 2px;
+		    border-radius: 4px;
+		    font-size: 12px;
+		    /* font-weight: bold; */
+		    display: inline-block;
+		    width: 43px;
+		    text-align: center;
+		}
+		.alert-sign{
+			    background-color: #343a2f;
+			    padding: 1px 3px;
+			    border-radius: -1px;
+			    font-size: 14px;
+		}
+		.alert-time{
+			        font-size: 14px;
+		}
+		.alert-interval{
+			    background-color: rgba(0, 0, 0, 0.6);
+			    border-radius: 4px;
+			    padding: 0px 2px;
+		}
+		.hide{ display: none;}
+		.volume-target{
+			width: 60px; padding: 0;    font-size: 14px;color: #4ee7eb;
+		}
+		.usdt{
+			font-size: 14px;    COLOR: #7fddb1;
+		}
+		.shadow{
+			box-shadow: 0 0 13px #e73700 inset
+		}
+		.V-1h,.V-2h,.V-4h{
+			background-color: #9c3306!important;
+		}
+		.V2-1h,.V2-2h,.V2-4h{
+			background-color: #d48411!important;
+		}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="control-panel">
+			<div class="form-row">
+				<span id="msg" style="color:#ff0">No Message</span>
+			</div>
+            <!-- <h3>监控设置</h3> -->
+            <div class="form-row">
+				
+                <!-- <label for="symbolInput">添加合约</label> -->
+                <input type="text" id="symbolInput" placeholder="BTCUSDT" style="flex: 5;">
+				<button id="addSymbol" class="btn" style="width: 100%; padding: 1px 2px!important; font-size: 15px; font-weight: bold; background-color: #356dc9;">+</button>
+            </div>
+            
+            
+            <div class="form-group" style="margin-top: 8px;">
+                <!-- <label>设置</label> -->
+                <div>
+					<div class="form-row">
+					    <button id="toggleRefresh" class="btn">PAUSE</button>
+						<span id="countdown" class="countdown">-</span>
+					</div>
+					
+					
+                    <div class="form-row">
+						
+                        <label for="refreshInterval">刷新时间</label>
+                        <select id="refreshInterval">
+                            <option value="60">1分钟</option>
+                            <option value="300" selected>5分钟</option>
+							<option value="900">15分钟</option>
+                        </select>
+                    </div>
+                    <div class="form-row" style="margin-top: 4px;">
+                        <label for="volumeThreshold">成交倍量</label>
+                        <select id="volumeThreshold">
+                            <option value="2">2倍</option>
+                            <option value="3">3倍</option>
+                            <option value="5" selected>5倍</option>
+                            <option value="10">10倍</option>
+                        </select>
+                    </div>
+                    <div class="form-row" style="margin-top: 4px;">
+                        <label for="globalTimeScale">时间尺度</label>
+                        <select id="globalTimeScale">
+                            <option value="1m">1分钟</option>
+                            <option value="5m" selected>5分钟</option>
+                            <option value="15m">15分钟</option>
+							<option value="30m">30分钟</option>
+                            <option value="1h">1小时</option>
+							<option value="4h">4小时</option>
+							<option value="1d">1天</option>
+							<option value="1w">1周</option>
+                        </select>
+                    </div>
+					
+					<div class="form-row" style="margin-top: 4px;">
+					    <label for="loadnumK">加载数量</label>
+					    <select id="loadnumK">
+							<!-- <option value="" selected disabled>K-number</option> -->
+					        <option value="30">30</option>
+					        <option value="50">50</option>
+							<option value="80">80</option>
+					        <option value="100">100</option>
+					        <option value="150">150</option>
+							<option value="200" selected>200</option>
+							<option value="300">300</option>
+							<option value="400">400</option>
+							<option value="500">500</option>
+					    </select>
+					</div>
+					<div class="form-row" style="margin-top: 4px;">
+					    <label for="numK">显示数量</label>
+					    <select id="numK">
+							<!-- <option value="" selected disabled>K-number</option> -->
+					        <option value="30">30</option>
+					        <option value="50">50</option>
+							<option value="80">80</option>
+					        <option value="100" selected>100</option>
+					        <option value="150">150</option>
+							<option value="200">200</option>
+							<option value="300">300</option>
+							<option value="400">400</option>
+							<option value="500">500</option>
+					    </select>
+					</div>
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <!-- <label>监控合约</label> -->
+                <div class="symbol-list" id="symbolList">
+                    <div class="symbol-item" style="justify-content: center; color: #94a3b8; font-style: italic;">无合约</div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="charts-container" id="chartsContainer">
+            <div class="empty-chart-message">请添加要监控的合约</div>
+        </div>
+    </div>
+    
+    <div class="status-bar">
+        <div class="status-left">
+            <button id="toggleRefresh" class="btn">PAUSE</button>
+           <!-- <button id="testAlert" class="btn">测试警报</button>
+            <div>状态: <span id="statusText">运行中</span></div> -->
+            <span id="countdown" class="countdown">-</span>
+        </div>
+        <div class="status-right">
+            <div><button id="openAlert" class="btn">All</button></div>
+            <div class="alerts-container" id="alertsContainer"></div>
+        </div>
+    </div>
+	<audio src="alert_break.mp3" id="alertSound"></audio>
+	<audio src="alert_volume.mp3" id="alertSound2"></audio>
+	<audio src="mp3/ding.mp3" id="music-v"></audio>
+	<div id="alertBox">
+		<p><button id="closeAlert">关闭</button><button id="clearAlert">删除</button></p>
+		<ul id="alertList"></ul>
+	</div>
+    <script>
+        // 全局变量
+        let HeatMonitor = [];
+        let refreshIntervalId = null;
+        let isRefreshing = true;
+        let chartInstances = {};
+        let klineDataCache = {};
+        let currentPrices = {};
+        let countdownValue = 0;
+        let alertHistory = [];
+		// const showKnum = 800;
+		let showKnum=100;   //1m=500 5m=100  15m=33 
+		let loadKnum=200;
+		// 在页面顶部定义
+		let audioUnlocked = false;
+		
+        // 币安API基础URL
+        const BINANCE_API_BASE = 'https://fapi.binance.com/fapi/v1';
+        
+        // K线时间间隔映射
+        const INTERVAL_MAP = {
+            '1m': '1m',
+            '5m': '5m',
+            '15m': '15m',
+            '30m': '30m',
+            '1h': '1h',
+			'2h': '2h',
+            '4h': '4h',
+			"8h":"8h",
+			'12h': '12h',
+            '1d': '1d',
+            '1w': '1w'
+        };
+        
+        // 初始化页面
+		//本地综合数据  == HeatMonitor 
+        $(document).ready(function() {
+			
+			$('.charts-container').on('dblclick', function(e) {
+			    // 检查点击的是不是空白区域（不是box或其它元素）
+			    if ($(e.target).hasClass('charts-container')) {
+			        $('.charts-container').animate({ scrollTop: 0 }, 500);
+			    }
+			});
+			
+			//初始化本地数据
+			if(!getLocal("HeatMonitor")){
+				setLocal("HeatMonitor",[])
+			}
+			// localStorage.removeItem("HeatAlert")
+			if(!getLocal("HeatAlert")){
+				setLocal("HeatAlert",[])
+			}
+			// console.log(getLocal("HeatAlert"))
+			alertHistory=getLocal("HeatAlert");
+			// console.log(alertHistory)
+			//加载历史警报
+			updateAlertsDisplay(alertHistory,0)
+			
+			
+			// 在 document.ready 里，任意用户交互时解锁
+			$(document).one('click keydown touchstart', function() {
+			    // 预播放一次无声音频，解锁 AudioContext
+			    const audio = $('#music-v')[0];
+			    audio.volume = 0;
+			    audio.play().then(() => {
+			        audio.pause();
+			        audio.currentTime = 0;
+			        audio.volume = 1;
+			        audioUnlocked = true;
+			        console.log('音频已解锁');
+			    }).catch(() => {});
+			});
+			
+			//打开全部历史警报
+			$("#openAlert").click(function(){
+				//清空警报
+				// alertHistory = [];
+				// $(".alert-item").remove()
+				$("#alertBox").toggleClass("showX");
+				showAllAlert(alertHistory);
+			})
+			$("#closeAlert").click(function(){
+				$("#alertBox").toggleClass("showX")
+			})
+			$("#clearAlert").click(function(){
+				if (confirm("delete all alert-data?")) {
+					  setLocal("HeatAlert",[]);
+					  alertHistory = [];  
+					  $(".alerts-container").empty();
+					  $("#alertList").empty()
+					  console.log("项目已被删除。");
+				} else {
+				  console.log("操作已取消。");
+				}
+				
+			})
+			
+			
+			var countdownIntervalId;
+			// 从本地存储加载已保存的合约
+            loadSavedSymbols();
+            
+            // 设置事件监听器
+            $('#addSymbol').click(addSymbol);
+            $('#toggleRefresh').click(toggleRefresh);
+            // $('#testAlert').click(testAlert);
+            $('#refreshInterval').change(startRefresh);
+            $('#volumeThreshold').change(updateAllVolumeThresholds);
+            $('#globalTimeScale').change(changeGlobalTimeScale);
+            
+            // 开始定时刷新
+            startRefresh();
+			
+			
+			// 切换K线数量
+			
+			$("#numK").change(function(){
+				// loadSavedSymbols();
+				switchZoom(showKnum);
+			})
+			
+			$("#loadnumK").change(function(){
+				loadKnum=$(this).val()
+				// 重新加载所有图表数据
+				if (HeatMonitor.length > 0) {
+				    HeatMonitor.forEach(symbol => {
+				        fetchKlineData(symbol, globalTimeScale);
+				    });
+				}
+			})
+			
+			
+			
+		
+			
+			$('#symbolList').on('mouseover', '.symbol-item', function() {
+				$(this).find(".symbol-name").css("color","#00ff3c");
+				var idx=$(this).index();
+				var $target=$(".chart-wrapper").eq(idx)//.find(".chart-header");
+				 $target.css("background","#0c393e");
+			}).on('mouseleave', '.symbol-item', function() {
+				$(this).find(".symbol-name").css("color","yellow");
+				var idx=$(this).index();
+				var $target=$(".chart-wrapper").eq(idx)//.find(".chart-header");
+				 $target.css("background","#161b22")
+			}).on('click', '.symbol-item', function() {
+				// $(this).css("background","#365c8c").siblings().css("background","#111827")
+				var idx=$(this).index();
+				var $target=$(".chart-wrapper").eq(idx);
+				var distance= $target.offset().top -$(".chart-container").offset().top + $(".chart-container").scrollTop();
+				$(".charts-container").animate({
+					scrollTop: distance
+				}, 100); 
+			})
+			
+			// $('#alertsContainer').on('click', '.alert-item', function() {
+			$('body').on('click', '.alert-item', function() {
+				$(this).removeClass("shadow")
+				var $name=$(this).find(".alert-name").text(); console.log($name);
+				var $target=$("#"+$name);
+				var distance= $target.offset().top -$(".chart-container").offset().top + $(".chart-container").scrollTop();
+				
+				const intervalx=$(this).find(".alert-sign").html().split("-")[1]
+				const $intervalBtn=$target.find(".time-scale-btn[data-interval='" + intervalx + "']");
+				$intervalBtn.trigger("click");
+				
+				$(".charts-container").animate({
+					scrollTop: distance
+				}, 100); 
+			}).on('mouseover', '.alert-item', function() {
+				var $name=$(this).find(".alert-name").text(); //console.log($name);
+				var $target=$("#"+$name);
+				 $target.css("background","#166b74");
+			}).on('mouseleave', '.alert-item', function() {
+				var $name=$(this).find(".alert-name").text(); //.log($name);
+				var $target=$("#"+$name);
+				 $target.css("background","#161b22")
+			})
+			
+			$('body').on('dblclick', '.alert-item', function() {})
+			
+			$('#alertList').on('click', '.alert-li', function() {
+				var $name=$(this).find(".alert-name").text(); console.log($name);
+				var $target=$("#"+$name);
+				var distance= $target.offset().top -$(".chart-container").offset().top + $(".chart-container").scrollTop();
+				
+				const intervalx=$(this).find(".alert-sign").html().split("-")[1]
+				const $intervalBtn=$target.find(".time-scale-btn[data-interval='" + intervalx + "']");
+				$intervalBtn.trigger("click");
+				
+				$(".charts-container").animate({
+					scrollTop: distance
+				}, 100); 
+			}).on('mouseover', '.alert-li', function() {
+				var $name=$(this).find(".alert-name").text(); //console.log($name);
+				var $target=$("#"+$name);
+				 $target.css("background","#166b74");
+			}).on('mouseleave', '.alert-li', function() {
+				var $name=$(this).find(".alert-name").text(); //.log($name);
+				var $target=$("#"+$name);
+				 $target.css("background","#161b22")
+			})
+
+			let resizeTimer = null;
+			
+			$(window).on('resize', function () {
+			
+			    clearTimeout(resizeTimer);
+			
+			    resizeTimer = setTimeout(() => {
+			
+			        Object.values(chartInstances).forEach(chart => {
+			            if (chart && !chart.isDisposed()) {
+			                chart.resize();
+			            }
+			        });
+			
+			    }, 100);
+			
+			});
+
+
+
+
+
+
+
+
+
+			//初始化暂停刷新
+			// $("#toggleRefresh").trigger("click");
+			
+			
+			
+        });
+		
+		//切换视野
+		function switchZoom(showKnum) {
+		    const N = parseInt($("#numK").val());
+		    const start = showKnum > N ? 100 - (N / showKnum * 100) : 0;
+		    const end = 100;
+		
+		    // 遍历你已有的 chart 实例
+		    Object.values(chartInstances).forEach(chart => {
+		        if (!chart || chart.isDisposed()) return;
+		
+		        chart.dispatchAction({
+		            type: 'dataZoom',
+		            start,
+		            end
+		        });
+		    });
+		}
+		        
+        // 从本地存储加载已保存的合约
+        function loadSavedSymbols() {
+            // const saved = localStorage.getItem('HeatMonitor');
+			const saved = localStorage.getItem('HeatMonitor');
+            if (saved) {
+                HeatMonitor = JSON.parse(saved);
+				//按字母排列
+				// HeatMonitor.sort((a, b) => a.name.localeCompare(b.name));
+				
+				//将BTC放第一位 其他按字母排列
+				HeatMonitor.sort((a, b) => {
+				  // 如果a是'BTCUSDT'，则a应排在b前面
+				  if (a.name === 'BTCUSDT') return -1;
+				  // 如果b是'BTCUSDT'，则b应排在a前面
+				  if (b.name === 'BTCUSDT') return 1;
+				  // 对于其他情况，按name的首字母顺序排序
+				  return a.name.localeCompare(b.name);
+				});
+				
+                updateSymbolList();
+                HeatMonitor.forEach(symbol => {
+                    createChart(symbol);
+                });
+                
+                sortChartWrapper();
+                syncSymbolListHighlight();
+            }
+        }
+        
+        // 更新合约列表显示
+        function updateSymbolList() {
+            const symbolList = $('#symbolList');
+            symbolList.empty();
+            
+            if (HeatMonitor.length === 0) {
+                symbolList.append('<div class="symbol-item" style="justify-content: center; color: #94a3b8; font-style: italic;">无合约</div>');
+                return;
+            }
+            
+            HeatMonitor.forEach(symbol => {
+                const symbolItem = $('<span class="symbol-item"></span>');
+                const simpleName=symbol.name.slice(0,-4)
+                // 添加可点击的合约名称（黄色）
+                const symbolLink = $(`<a class="symbol-name">${simpleName}<span class="usdt"></span></a>`);
+                symbolLink.attr('href', `https://www.binance.com/zh-CN/futures/${symbol.name}`);
+                symbolLink.attr('target', '_blank');
+                symbolLink.attr('title', '在币安官网查看该合约');
+                
+                symbolItem.append(symbolLink);
+                
+                const deleteBtn = $('<button class="btn btn-danger">X</button>');
+                deleteBtn.attr('title', '删除合约');
+                deleteBtn.click(function() {
+                    removeSymbol(symbol);
+                });
+				
+				const hideBtn = $('<button class="btn btn-success">H</button>');
+				hideBtn.click(function() {
+				    $("#"+symbol.name).toggleClass("hide");
+					$(this).toggleClass("grey");
+				});
+                var $btnBox=$("<span class='btn-box'></span>");
+				// $btnBox.append(hideBtn);
+				$btnBox.append(deleteBtn);
+				
+				// symbolItem.append(hideBtn);
+    //             symbolItem.append(deleteBtn);
+				symbolItem.append($btnBox);
+                symbolList.append(symbolItem);
+            });
+        }
+        
+        // 添加合约
+        function addSymbol() {
+            const symbolInput = $('#symbolInput');
+            const symbolName = symbolInput.val().trim().toUpperCase();
+            
+            if (!symbolName) {
+                alert('请输入合约代码');
+                return;
+            }
+            
+            // 检查是否已存在
+            if (HeatMonitor.find(member=>member.name==symbolName)) {
+                alert('该合约已在监控列表中');
+                return;
+            }
+            
+            // 添加到监控列表
+			var symbol={
+				name:symbolName,
+				targetPrice:"",
+				highLight:false
+			}
+            HeatMonitor.push(symbol);
+            localStorage.setItem('HeatMonitor', JSON.stringify(HeatMonitor));
+            
+            // 更新UI
+            updateSymbolList();
+            createChart(symbol);
+            
+            // 清空输入框
+            symbolInput.val('');
+			// loadSavedSymbols()
+        }
+        
+        // 删除合约
+        function removeSymbol(symbol) {
+			console.log(symbol)
+            // 从监控列表中移除
+            HeatMonitor = HeatMonitor.filter(member=> member.name !== symbol.name);
+            localStorage.setItem('HeatMonitor', JSON.stringify(HeatMonitor));
+            
+            // 更新UI
+            updateSymbolList();
+            
+            // 删除对应的图表
+            if (chartInstances[symbol.name]) {
+                chartInstances[symbol.name].dispose();
+                delete chartInstances[symbol.name];
+            }
+            
+            $(`#chart-${symbol.name}`).parent().remove();
+            
+            // 清理缓存
+            delete klineDataCache[symbol.name];
+            delete currentPrices[symbol.name];
+            
+            // 如果没有图表了，显示提示信息
+            if ($('.chart-wrapper').length === 0) {
+                $('#chartsContainer').html('<div class="empty-chart-message">请添加要监控的合约</div>');
+            }
+			// loadSavedSymbols()
+        }
+        
+        //!!!!!!绘制div结构!!!!!!!!!!
+        function createChart(symbol) {
+            // 移除提示文本
+            $('#chartsContainer').find('.empty-chart-message').remove();
+			
+			var highClass="",btnHighClass="";
+			if(symbol.highLight){
+				highClass="lightShadow";
+				btnHighClass="yellow1";
+			}
+            const chartWrapper = $('<div class="chart-wrapper '+highClass+'" id="'+symbol.name+'"></div>');
+            const chartId = `chart-${symbol.name}`;
+            
+            // 创建可点击的合约名称
+			var simpleName=symbol.name.slice(0,-4)
+            const symbolLink = $(`<a class="chart-title">${simpleName}<span class="usdt">USDT</span></a>`);
+            symbolLink.attr('href', `https://www.binance.com/zh-CN/futures/${symbol.name}`);
+            symbolLink.attr('target', '_blank');
+            symbolLink.attr('title', '在币安官网查看该合约');
+			
+			
+            
+            const chartHeader = $(`
+                <div class="chart-header">
+                    <div class="chart-title-container">
+                        ${symbolLink[0].outerHTML}
+						<a class="coinglass" href="https://www.coinglass.com/tv/zh/Binance_${symbol.name}" target="_blank">CoinGlass</a>
+                        <span class="price-info" id="price-${symbol.name}" style="display: none;">-</span>
+                        <span id="alert-${symbol.name}" class="alert-indicator" style="display: none;"></span>
+                    </div>
+					<div>
+						<select class="volume-target">
+							<option value="" selected>None Vol</option>
+							<option value="20000">20K</option>
+							<option value="50000">50K</option>
+							<option value="100000">100K</option>
+							<option value="200000">200K</option>
+							<option value="300000">300K</option>
+							<option value="500000">500K</option>
+							<option value="1000000">1M</option>
+							<option value="2000000">2M</option>
+							<option value="5000000">5M</option>
+						    <option value="10000000">10M</option>
+						</select>
+						<input type="text" class="targetPrice" name="${symbol.name}" value="${symbol.targetPrice}">
+						<button id="setTarget" class="setBtn green1">SET</button>
+						<button id="deleteTarget" class="setBtn red1 hide">x</button>
+						<button id="light" class="setBtn ${btnHighClass}">LIGHT</button>
+						
+					</div>
+                    <div class="chart-actions">
+                        <button class="btn time-scale-btn" data-interval="1m">1m</button>
+                        <button class="btn time-scale-btn" data-interval="5m">5m</button>
+                        <button class="btn time-scale-btn" data-interval="15m">15m</button>
+						<button class="btn time-scale-btn" data-interval="30m">30m</button>
+                        <button class="btn time-scale-btn" data-interval="1h">1h</button>
+						<button class="btn time-scale-btn" data-interval="2h">2h</button>
+                        <button class="btn time-scale-btn" data-interval="4h">4h</button>
+						<button class="btn time-scale-btn" data-interval="8h">8h</button>
+						<button class="btn time-scale-btn" data-interval="12h">12h</button>
+                        <button class="btn time-scale-btn" data-interval="1d">1d</button>
+						<button class="btn time-scale-btn" data-interval="1w">1w</button>
+                        <button class="btn btn-danger remove-chart">X</button>
+                    </div>
+                </div>
+            `);
+            
+            const chartDiv = $(`<div id="${chartId}" class="chart-container"></div>`);
+            
+            chartWrapper.append(chartHeader);
+            chartWrapper.append(chartDiv);
+            $('#chartsContainer').append(chartWrapper);
+            
+            // 初始化ECharts实例
+            const chart = echarts.init(document.getElementById(chartId));
+            chartInstances[symbol.name] = chart;
+			
+			chart.on('click', function (params) {
+					// 只处理K线
+					if (params.seriesType !== 'candlestick') return
+					// console.log(params)
+					const kline={
+						open:params.data[1],
+						close:params.data[2],
+						low:params.data[3],
+						high:params.data[4]
+					}
+					const obj=lineObj(kline)
+					const str="实体:"+obj.middle_all+"_"+"下线:"+obj.down_all;
+					$("#msg").html(str)
+				})
+			
+            // 设置时间尺度切换事件
+            chartHeader.find('.time-scale-btn').click(function() {
+                chartHeader.find('.time-scale-btn').removeClass('active');
+                $(this).addClass('active');
+                const interval = $(this).data('interval');
+                fetchKlineData(symbol, interval);
+            });
+			
+			//给成交额option初始化加载本地数据
+			var $volumeTarget=chartHeader.find(".volume-target");
+			if (symbol.hasOwnProperty("volume")) {
+				$volumeTarget.val(symbol.volume)
+			}
+			//设置成交额
+			$volumeTarget.change(function(){
+				var targetVol=$(this).val();
+				changeLocal(symbol.name,"volume",targetVol);
+			})
+			
+			//设置目标线事件
+			chartHeader.find("#setTarget").click(function(){
+				var $input=$(this).siblings(".targetPrice")
+				var tPrice=$input.val();
+				if(!isNaN(parseFloat(tPrice)) && isFinite(tPrice)){
+					changeLocal(symbol.name,"targetPrice",tPrice);
+					const interval = $input.parent().siblings(".chart-actions").find(".active").data('interval');
+					console.log(interval)
+					fetchKlineData(symbol, interval);
+				}else{
+					var thisSymbol=HeatMonitor.find(member => member.name == symbol.name)
+					$input.val(thisSymbol.targetPrice)
+				}
+			})
+			//删除目标线事件
+			chartHeader.find("#deleteTarget").click(function(){
+				var $input=$(this).siblings(".targetPrice")
+				$input.val("");
+				changeLocal(symbol.name,"targetPrice","");
+				const interval = $input.parent().siblings(".chart-actions").find(".active").data('interval');
+				console.log(interval)
+				fetchKlineData(symbol, interval);
+			})
+			
+			//高亮
+			// chartHeader.find("#light").click(function(){
+			// 	var thisSymbols=HeatMonitor.find(member => member.name == symbol.name)
+			// 	var flag=thisSymbols["highLight"];
+			// 	console.log(flag)
+			// 	changeLocal(symbol.name,"highLight",!flag);
+			// 	console.log(JSON.stringify(getLocal("HeatMonitor")))
+			// 	chartWrapper.toggleClass("lightShadow");
+			// 	$(this).toggleClass("yellow1")
+			// })
+			chartHeader.find("#light").click(function(){
+			
+			    const thisSymbol =
+			        HeatMonitor.find(member => member.name == symbol.name);
+			
+			    const flag = thisSymbol.highLight;
+			
+			    changeLocal(symbol.name,"highLight",!flag);
+			
+			    thisSymbol.highLight = !flag;
+			
+			    chartWrapper.toggleClass("lightShadow");
+			    $(this).toggleClass("yellow1");
+			
+			    sortChartWrapper();
+			    syncSymbolListHighlight();
+			});
+			
+            
+            // 设置删除按钮事件
+            chartHeader.find('.remove-chart').click(function() {
+                removeSymbol(symbol);
+            });
+            
+            // 初始加载数据（使用全局时间尺度设置）
+            const globalTimeScale = $('#globalTimeScale').val();
+            fetchKlineData(symbol, globalTimeScale);
+			chartHeader.find('.time-scale-btn').each(function(idx,item){
+				if($(item).data('interval')==globalTimeScale){
+					$(this).addClass("active");
+					return
+				}
+			})
+            
+            // // 响应窗口大小变化
+            // $(window).resize(function() {
+            //     chart.resize();
+            // });
+        }
+		
+		
+		//左侧高亮
+		function syncSymbolListHighlight(){
+		
+		    $("#symbolList .symbol-item").each(function(){
+		
+		        const name =
+		            HeatMonitor[$(this).index()]?.name;
+		
+		        const symbol =
+		            HeatMonitor.find(x=>x.name===name);
+		
+		        if(symbol?.highLight){
+		            $(this).addClass("lightShadow");
+		        }else{
+		            $(this).removeClass("lightShadow");
+		        }
+		
+		    });
+		
+		}
+		
+		//排序函数
+		function sortChartWrapper() {
+		
+		    const highLights = HeatMonitor
+		        .filter(x => x.highLight && x.name !== 'BTCUSDT')
+		        .sort((a,b)=>a.name.localeCompare(b.name));
+		
+		    const normals = HeatMonitor
+		        .filter(x => !x.highLight && x.name !== 'BTCUSDT')
+		        .sort((a,b)=>a.name.localeCompare(b.name));
+		
+		    const newOrder = [];
+		
+		    // BTC永远第一
+		    const btc = HeatMonitor.find(x=>x.name==="BTCUSDT");
+		    if(btc) newOrder.push(btc);
+		
+		    newOrder.push(...highLights);
+		    newOrder.push(...normals);
+		
+		    // 更新HeatMonitor顺序
+		    HeatMonitor = newOrder;
+		
+		    localStorage.setItem(
+		        "HeatMonitor",
+		        JSON.stringify(HeatMonitor)
+		    );
+		
+		    // 重排左侧列表
+		    const $list = $("#symbolList");
+		
+		    HeatMonitor.forEach(item=>{
+		        const idx = $("#symbolList .symbol-item").filter(function(){
+		            return $(this)
+		                .find(".symbol-name")
+		                .text()
+		                .includes(item.name.replace("USDT",""));
+		        });
+		
+		        $list.append(idx);
+		    });
+		
+		    // 重排图表
+		    const $charts = $("#chartsContainer");
+		
+		    HeatMonitor.forEach(item=>{
+		        const $chart = $("#"+item.name);
+		        if($chart.length){
+		            $charts.append($chart);
+		        }
+		    });
+		
+		}
+        
+        // 获取K线数据
+        function fetchKlineData(symbol, interval) {
+			// console.log("12e3")
+            const url = `${BINANCE_API_BASE}/klines`;
+            const params = {
+                symbol: symbol.name,
+                interval: INTERVAL_MAP[interval] || '5m',
+                limit: loadKnum
+            };
+            
+            $.ajax({
+                url: url,
+                type: 'GET',
+                data: params,
+                dataType: 'json',
+                success: function(data) {
+                    if (data && data.length > 0) {
+                        processKlineData(symbol, data, interval);
+                        $('#statusText').text('运行中');
+                    } else {
+                        showNoDataChart(symbol);
+                        $('#statusText').text('无数据');
+                    }
+                },
+                error: function(xhr, status, error) {
+                    console.error(`获取 ${symbol} K线数据失败:`, error);
+                    $('#statusText').text(`错误: ${error}`);
+                    showNoDataChart(symbol);
+                }
+            });
+        }
+        
+        // 处理K线数据
+        function processKlineData(symbol, klineData, interval) {
+            if (!klineData || klineData.length === 0) {
+                showNoDataChart(symbol);
+                return;
+            }
+			
+            // 转换数据格式
+			// console.log(klineData[0])
+            const convertedData = klineData.map(item => [
+                parseFloat(item[1]), // 开盘价
+                parseFloat(item[4]), // 收盘价
+                parseFloat(item[3]), // 最低价
+                parseFloat(item[2]), // 最高价
+                parseFloat(item[7])// 改为成交额   parseFloat(item[5])// 成交量
+            ]);
+            
+            // 缓存数据
+            klineDataCache[symbol.name] = convertedData;
+            
+            // 更新当前价格
+            const latestData = convertedData[convertedData.length - 1];
+            currentPrices[symbol.name] = latestData[1];
+            
+            // 更新价格显示
+            updatePriceDisplay(symbol);
+            
+            // 更新图表（默认显示最后100条数据）
+            // updateChart(symbol, convertedData.slice(-100), interval);
+			updateChart(symbol, convertedData, interval);
+            
+            // 检测
+            checkAlert(symbol, klineData);
+        }
+        
+
+        // 触发警报主函数
+        function checkAlert(symbol, klineData) {
+			//价格成交额突破
+			breakAlert(symbol, klineData);
+			//反转
+			// vAlert(symbol,klineData)
+        }
+		
+		//价格成交额突破判断！！！！！！！！！
+		function breakAlert(symbol, klineData){
+			var len=klineData.length;
+			//最后一根K线：目前进行中的K线，还没结束
+			const new1 = klineData[len - 1];
+			//倒数第2K线：最后第2根收盘K线
+			const new2 = klineData[len - 2];
+			//倒数第3K线：最后第2根收盘K线
+			const new3 = klineData[len - 3];
+			
+			//  上涨==========    	// 下跌=============
+			//  2 最高价(High)		//  2 最高价(High)
+			//  4 收盘价(Close)		//  1 开盘价(Open)
+			//  1 开盘价(Open)		//  4 收盘价(Close)
+			//  3 最低价(Low)		//  3 最低价(Low)
+			
+			//突破设置的价格线===================================
+			var targetPrice=symbol.targetPrice; //目标价
+			//判断：开盘价<价格线 && 收盘价>价格线
+			var flag_break=new2[1]<targetPrice && new2[4]>=targetPrice;
+			if(flag_break){
+				triggerAlert(symbol,new2,"BRE")
+			} 
+			
+			//突破设置的成交额===================================
+			var targetVol=parseFloat(symbol.volume); //目标成交额
+			// 判断：有设置vol && K线成交额大于目标成交额 && 涨幅大于0 && 在5m和1m的尺度下
+			var flag_volume=Boolean(targetVol) && new2[7]>=targetVol && new2[4]>new2[1] && (new2[6]-new2[0]<=100000);
+			if(flag_volume){
+				triggerAlert(symbol,new2,"VOL")
+			}
+		}
+		
+		//某根K线是最低价是其前面5根K线的最低价
+		function lowestPrice(klineData){
+			var flag=true;
+			const arr=klineData.slice(-10);
+			const testK=arr[arr.length-2];
+			for (var i = 0; i < arr.length; i++) {
+				if(testK[3]>arr[i][3]){
+					flag=false;
+					break;
+				}
+			}
+			if(flag){
+				return true;
+			}else{
+				return false;
+			}
+		}
+		
+		//最新4根成交额ave是前面4根成交额ave的2倍以上
+		function volvolRise(klineData,name){
+			const arr=klineData.slice(-9);
+			const arr1=arr.slice(4,8)//最新1-4根
+			const arr2=arr.slice(0,4)//最新4-8根
+			const ave1=aveVol(arr1,7); //console.log(ave1)
+			const ave2=aveVol(arr2);//console.log(ave2)
+			
+			//判断是否最新4根K成交额都大于该平均值的30%以上，不出现断层
+			var flag=true;
+			for (var i = 0; i < arr1.length; i++) {
+				if(parseFloat(arr1[i][7])<(ave1*0.3)){
+					flag=false;
+					break;
+				}
+			}
+			// console.log(ave1/ave2,flag,name)
+			
+			if(ave1/ave2>=3 && flag){
+			// if(ave1/ave2>=2 ){
+				return true;
+			}else{
+				return false;
+			}
+		}
+		function aveVol(arrx,num){
+			var totalVol=0;
+			for (var i = 0; i < arrx.length; i++) {
+				totalVol+=parseFloat(arrx[i][num]);
+			}
+			// console.log(totalVol)
+			return totalVol/arrx.length
+		}
+		
+		// 输出最近10根K线的平均成交额
+		function aveVol10(klineData){
+			const arr=klineData.slice(-10,-1);
+			var totalVol=0;
+			for (var i = 0; i < arr.length; i++) {
+				totalVol+=parseFloat(arr[i][7]);
+			}
+			return totalVol/arr.length
+		}
+		
+		
+		//反转信号判断！！！！！！！！！！
+		function vAlert(symbol, klineData){
+			// console.log("1111")
+			const interval=["5m","15m","30m","1h","2h","4h"];
+			// const interval=["15m","30m","1h","2h","4h"];
+			interval.forEach(function(item, idx) {
+				const combineRes=combineX(klineData, item);
+				if(symbol.name=="IDOLUSDT"){
+					console.log(item)
+					console.log(combineRes)
+				}
+				if(!combineRes.length) return;
+				
+				
+				//last1为最后一根完成的K线
+				const last1=combineRes.at(-1); const obj1=lineObj(last1);
+				if(obj1.part.middle==0) return;
+				
+				 //适用于15m 30m 1h 2h=====================================
+				if(item=="30m" || item=="1h" || item=="2h"){
+					//获取倒数第2和倒数第3根K
+					const last2=combineRes.at(-2); const obj2=lineObj(last2);
+					const last3=combineRes.at(-3); const obj3=lineObj(last3);
+					if(	
+						//排除前两根都是上涨
+						!(obj2.direction=="up" && obj3.direction=="up")
+						// 排除： 前一根是上涨并且实体大于最后一根实体的3倍
+						&&  !(obj2.direction=="up" && obj2.part.middle>=obj1.part.middle*3)
+						//最低价是前两根里面的最低价
+						&&  (last1.low<last2.low && last1.low<last3.low)
+						//符合：实体小于0.3  下线大于0.6
+						&&  (obj1.middle_all<=0.3 && obj1.down_all>=0.6)
+						
+					){
+						const sign="V-"+item;
+						triggerAlert(symbol,last1,sign,item)
+					}
+					
+					const lastArr=combineRes.slice(-5, -1);
+					let fallFlag=true;
+					for (var i = 0; i < lastArr.length; i++) {
+						if(lastArr[i].close>lastArr[i].open){
+							fallFlag=false;
+						}
+					}
+					if(fallFlag && obj1.direction=="up" && last1.volume>=last2.volume ){
+						const sign="V2-"+item;
+						triggerAlert(symbol,last1,sign,item)
+					}
+					
+				//适用于5m===================================================
+				}else if(item=="5m"){   
+					//截取倒数第5到倒数第2
+					const lastArr=combineRes.slice(-5, -1);
+					//判断前几根都是下跌
+					let fallFlag=true;
+					for (var i = 0; i < lastArr.length; i++) {
+						if(lastArr[i].close>lastArr[i].open){
+							fallFlag=false;
+						}
+					}
+					if(fallFlag &&  (obj1.middle_all<=0.2 && obj1.down_all>=0.7)){
+						const sign="V-"+item;
+						triggerAlert(symbol,last1,sign,item)
+					}
+					
+				//适用于15m================================================
+				}else if(item=="15m"){   
+					//截取倒数第3到倒数第2
+					const lastArr=combineRes.slice(-3, -1);
+					//判断前几根都是下跌
+					let fallFlag=true;
+					for (var i = 0; i < lastArr.length; i++) {
+						if(lastArr[i].close>lastArr[i].open){
+							fallFlag=false;
+						}
+					}
+					if(fallFlag &&  (obj1.middle_all<=0.2 && obj1.down_all>=0.7)){
+						const sign="V-"+item;
+						triggerAlert(symbol,last1,sign,item)
+					}
+					
+				//适用于4h================================================
+				}else if(item=="4h"){
+					//符合：实体小于0.3  下线大于0.6
+					// if(obj1.middle_all<=0.3 && obj1.down_all>=0.6){
+					if( (obj1.middle_all<=0.3 && obj1.down_all>=0.6)  || obj1.middle_all<=0.1 ){
+						const sign="V-"+item;
+						triggerAlert(symbol,last1,sign,item)
+					}
+				}
+			});
+			
+		}
+		//无论涨跌：输出k线各部分比例
+		function lineObj(k){
+			let part;
+			let direction;
+			if(k.close>k.open){
+				direction="up";
+				part={
+					up:k.high-k.close,
+					middle:k.close-k.open,
+					down:k.open-k.low,
+					all:k.high-k.low
+				}
+			}else{
+				direction="down"
+				part={
+					up:k.high-k.open,
+					middle:k.open-k.close,
+					down:k.close-k.low,
+					all:k.high-k.low
+				}
+			}
+			return {
+				direction:direction,
+				part:part,
+				middle_all:(part.middle/part.all).toFixed(2),
+				down_up:(part.down/part.up).toFixed(2),
+				down_all:(part.down/part.all).toFixed(2)
+			}
+		}
+		//完美版本
+		function combineX(klines, interval) {
+		    if (!klines || klines.length === 0) return [];
+		
+		    // 解析interval字符串为分钟数（支持任意输入）
+		    function parseIntervalToMin(str) {
+		        if (!str) return 0;
+		        const num = parseFloat(str);
+		        if (str.endsWith('m')) return num;
+		        if (str.endsWith('h')) return num * 60;
+		        if (str.endsWith('d')) return num * 1440;
+		        if (str.endsWith('w')) return num * 10080;
+		        return 0;
+		    }
+		
+		    const targetMin = parseIntervalToMin(interval);
+		    if (!targetMin) {
+		        console.warn('无法解析目标周期:', interval);
+		        return [];
+		    }
+		
+		    klines.sort((a, b) => a[0] - b[0]);
+		
+		    // 从数据本身计算源周期（毫秒）
+		    const sourceIntervalMs = klines[0][6] - klines[0][0] + 1;
+		    const targetIntervalMs = targetMin * 60 * 1000;
+		
+		    // 目标周期必须 >= 源周期
+		    if (targetIntervalMs < sourceIntervalMs) {
+		        console.warn('目标周期小于源周期，无法聚合');
+		        return [];
+		    }
+		
+		    // 目标周期必须是源周期的整数倍
+		    if (targetIntervalMs % sourceIntervalMs !== 0) {
+		        console.warn('目标周期不是源周期的整数倍');
+		        return [];
+		    }
+		
+		    const needCount = targetIntervalMs / sourceIntervalMs;
+		    const now = Date.now();
+		    const map = new Map();
+		
+		    for (const k of klines) {
+		        const openTime = k[0];
+		        const keyTime = Math.floor(openTime / targetIntervalMs) * targetIntervalMs;
+		
+		        if (!map.has(keyTime)) {
+		            map.set(keyTime, {
+		                time: keyTime,
+		                open:        +k[1],
+		                high:        +k[2],
+		                low:         +k[3],
+		                close:       +k[4],
+		                volume:      +k[5],
+		                quoteVolume: +k[7],
+		                count: 1,
+		                lastCloseTime: +k[6]
+		            });
+		        } else {
+		            const bar = map.get(keyTime);
+		            bar.high         = Math.max(bar.high, +k[2]);
+		            bar.low          = Math.min(bar.low,  +k[3]);
+		            bar.close        = +k[4];
+		            bar.volume      += +k[5];
+		            bar.quoteVolume += +k[7];
+		            bar.count++;
+		            bar.lastCloseTime = +k[6];
+		        }
+		    }
+		
+		    // needCount=1时（同周期转换）跳过严格对齐检查，只验证时间已走完
+		    const completedBars = Array.from(map.values())
+		        .filter(bar => {
+		            const expectedCloseTime = bar.time + targetIntervalMs - 1;
+		
+		            if (needCount === 1) {
+		                // 同周期：只需时间已走完，直接用原始closeTime
+		                return bar.lastCloseTime < now;
+		            }
+		
+		            return (
+		                bar.count === needCount &&
+		                bar.lastCloseTime === expectedCloseTime &&
+		                expectedCloseTime < now
+		            );
+		        })
+		        .sort((a, b) => a.time - b.time);
+		
+		    return completedBars;
+		}
+		
+
+        // 添加警报通知
+        function triggerAlert(symbol,k,sign,interval) {
+			
+			// console.log("!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!1")
+            $(`#alert-${symbol.name}`).show();
+            
+            const now =k.lastCloseTime?new Date(k.lastCloseTime): new Date(k[0]);
+            const timeString = now.toLocaleTimeString('zh-CN', { 
+            	hour: '2-digit', 
+            	minute: '2-digit',
+            	// second: '2-digit'
+            });
+			// console.log(timeString)
+            // 创建警报对象
+            const newAlert = {
+            	symbolName: symbol.name,
+            	time: timeString,
+				sign:sign,
+				interval:interval?interval:$("#globalTimeScale").val()
+            };
+            
+            //判断有没有出现过同样的值，没有就添加
+            var alertFlag=true;
+			
+            for (var i = 0; i < alertHistory.length; i++) {
+            	if((alertHistory[i].symbolName==newAlert.symbolName && alertHistory[i].time==newAlert.time && alertHistory[i].sign==newAlert.sign)){
+            		alertFlag=false;
+            		break;
+            	}
+            }
+            if(alertFlag){
+				alertHistory.unshift(newAlert);
+				// console.log(alertHistory)
+            	// alertHistory.push(newAlert);
+				setLocal("HeatAlert",alertHistory);
+				// console.log(getLocal(("HeatAlert")))
+            	// 播放警报声音
+            	if (isRefreshing) {
+					if(sign=="BRE" || sign=="LINE"){
+						$('#alertSound')[0].play().catch(e => {
+							console.log("自动播放被阻止，需要用户交互");
+						});
+					}else if(sign=="VOL" || sign=="VVR"){
+						$('#alertSound2')[0].play().catch(e => {
+							console.log("自动播放被阻止，需要用户交互");
+						});
+					}else if (sign.indexOf("V-") !== -1) {
+						if (audioUnlocked) {
+							$('#music-v')[0].currentTime = 0; // 重置，避免上次未播完
+							$('#music-v')[0].play().catch(e => console.log('播放失败:', e));
+						} else {
+							console.log('音频未解锁，跳过播放');
+						}
+					}
+            	
+            	}
+            }
+            
+            // 限制最多显示10个警报
+            // if (alertHistory.length > 10) {
+            // 	alertHistory.shift();
+            // }
+            
+            // 更新警报显示
+            updateAlertsDisplay(alertHistory,"1");
+        }
+        
+        // 更新警报显示
+        function updateAlertsDisplay(alertHistory,flag) {
+			let newFlag="";
+			if( flag=="1"){ newFlag="shadow"}else{newFlag=""}
+            const alertsContainer = $('#alertsContainer');
+            alertsContainer.empty();
+			var classColor;
+			// console.log(alert.sign)
+			
+            var timescale=$("#globalTimeScale").val()
+			var showArr=alertHistory.slice(0,10)
+            // 显示最新的10个警报
+            showArr.forEach(alert => {
+				switch (alert.sign) {
+				    case "BRE":
+						classColor="red1"
+						break;
+					case "VOL":
+						classColor="yellow1"
+						break;
+					case "LINE":
+					    classColor="green1"
+					    break;
+					case "VVR":
+						classColor="yellow1"
+						break;
+					default: classColor="v"
+					break;
+				   
+				}
+                // const alertItem = $(`<div class="alert-item">${alert.symbolName} ${alert.time} </div>`);
+				const alertItem = $(
+					`<div class="alert-item ${classColor}">
+						<span class="">
+							<span class="alert-tips alert-name">${alert.symbolName}</span>
+							<span class="alert-tips alert-sign ${alert.sign}">${alert.sign}</span>
+							<span class="alert-tips alert-time">${alert.time}</span>
+							
+						</span>
+					</div>`
+				);
+				// <span class="alert-tips alert-interval">${alert.interval}</span>/
+                alertsContainer.append(alertItem);
+            });
+        }
+		
+		function showAllAlert(alertHistory){
+			var $ul=$("#alertList");
+			$ul.empty()
+			alertHistory.forEach(alert => {
+				switch (alert.sign) {
+				    case "BRE":
+						classColor="red1"
+						break;
+					case "VOL":
+						classColor="yellow1"
+						break;
+					case "LINE":
+					    classColor="green1"
+					    break;
+					case "VVR":
+						classColor="yellow1"
+						break;
+					default: classColor="v"
+					break;
+				   
+				}
+				const $li = $(
+					`<li class="alert-li ${classColor}">
+						<span class="" href="https://www.binance.com/zh-CN/futures/${alert.symbolName}" target="_blank">
+							<span class="alert-tips alert-name">${alert.symbolName}</span>
+							<span class="alert-tips alert-sign ${alert.sign}">${alert.sign}</span>
+							<span class="alert-tips alert-time">${alert.time}</span>
+							
+						</span>
+					</li>`
+				);
+				//<span class="alert-tips alert-interval">${alert.interval}</span>
+			    $ul.append($li);
+			});
+			
+		}
+        
+		// 更新价格显示
+		function updatePriceDisplay(symbol) {
+		    const price = currentPrices[symbol.name];
+		    if (price) {
+		        $(`#price-${symbol.name}`).text(price.toFixed(4));
+		    }
+		}
+		
+		// !!!!!!!!! option!!!!!!!!!!!!!
+		function updateChart(symbol, klineData, interval) {
+			// console.log(symbol)
+		    const chart = chartInstances[symbol.name];
+		    
+		    if (!chart) return;
+		    
+		    // 准备时间轴数据
+		    const timeData = klineData.map((_, index) => {
+		        const baseTime = new Date();
+		        baseTime.setMinutes(baseTime.getMinutes() - (klineData.length - index - 1) * 
+		            getmin(interval));
+		        // return baseTime.toLocaleTimeString('zh-CN', { 
+		        //     hour: '2-digit', 
+		        //     minute: '2-digit' 
+		        // });
+				return baseTime.toLocaleString('zh-CN', {
+				    // year: 'numeric',
+				    month: '2-digit',
+				    day: '2-digit',
+				    hour: '2-digit',
+				    minute: '2-digit',
+				    // second: '2-digit',
+				    hour12: false
+				})
+		    });
+		    
+		    // 准备K线数据
+		    const klineValues = klineData.map(item => [item[0], item[1], item[2], item[3]]);
+			const lastKline= klineValues[klineValues.length - 1];
+			chart.lastPrice = lastKline[1];
+			// console.log(klineValues)
+		    
+		    // 准备成交量数据
+			// console.log(klineData)
+		    const volumeData = klineData.map((item, index) => [
+		        index,
+		        item[4],
+		        item[1] >= item[0] ? 1 : -1
+		    ]);
+		    
+		    // 格式化成交量显示
+		    function formatVolume(value) {
+		        if (value >= 1000000000) {
+		            return (value / 1000000000).toFixed(2) + 'B';
+		        } else if (value >= 1000000) {
+		            return (value / 1000000).toFixed(2) + 'M';
+		        } else if (value >= 1000) {
+		            return (value / 1000).toFixed(2) + 'K';
+		        } else {
+		            return value.toFixed(2);
+		        }
+		    }
+		    
+		    // 创建dataZoom配置
+			const N = parseInt($("#numK").val());
+			const zoomStart = showKnum > N ? 100 - (N/showKnum*100) : 0;
+		    const dataZoomConfig = [{
+		        type: 'inside',
+		        xAxisIndex: [0, 1],
+		        // start: 0,
+				start: zoomStart,
+		        end: 100,
+		        throttle: 50,
+		        // zoomLock: true
+		    }];
+			
+		
+			
+		    
+		    // 完整的K线图配置 - 包含K线和成交量
+		    const option = {
+		        backgroundColor: 'transparent',
+				graphic: [{
+				    type: 'text',
+				    z: 0,                // 放在最底层
+				    silent: true,
+				    left: 'center',
+				    top: 'top',
+				    style: {
+				        text: symbol.name,
+				        fill: 'rgba(255,255,255,0.2)',
+				        fontSize: 40
+				    }
+				}],
+		        animation: false,
+		        tooltip: {
+		            trigger: 'axis',
+		            axisPointer: {
+		                type: 'cross',
+		                label: {
+		                    backgroundColor: '#161b22'
+		                }
+		            },
+		            formatter: function (params) {
+		                let result = '';
+						var newprice=klineValues[klineValues.length-1][1];
+		                params.forEach(item => {
+		                    if (item.seriesType === 'candlestick') {
+		                        const data = item.data;
+		                        const time = timeData[item.dataIndex];
+		                        const openPrice = data[1];
+		                        const closePrice = data[2];
+		                        const changePercent = ((closePrice - openPrice) / openPrice * 100).toFixed(2);
+		                        const totalPercent=(((closePrice-newprice)/newprice)*100).toFixed(1);
+		                        result += `
+		                            <div style="font-size: 14px; line-height: 1.3;">
+		                                <div>时间: ${time}</div>
+		                                <div>K幅度: ${changePercent}%</div>
+										<div>总涨跌: ${totalPercent}%</div>
+										
+		                        `;
+		                    } else if (item.seriesType === 'bar') {
+		                        const volume = item.data[1];
+		                        result += `<div>成交额: ${formatVolume(volume)}</div>`;
+		                    }
+		                });
+		                result += '</div>';
+		                return result;
+		            },
+		            borderWidth: 0,
+		            borderColor: '#2d3748',
+		            backgroundColor: 'rgba(22, 27, 34, 0.95)',
+		            textStyle: {
+		                color: '#e0e0e0',
+		                fontSize: 12
+		            }
+		        },
+				axisPointer: {
+				  link: [{ xAxisIndex: [0, 1] }]
+				},
+		        grid: [
+		            {
+		                left: '1%',
+		                right: '6%',
+		                top: '3%',
+		                bottom: '30%',
+		                containLabel: false
+		            },
+		            {
+		                left: '1%',
+		                right: '6%',
+		                top: '72%',
+		                // height: '20%',
+						bottom:"5%",
+		                containLabel: false
+		            }
+		        ],
+		        xAxis: [
+		            {
+		                type: 'category',
+		                data: timeData,
+		                scale: true,
+		                boundaryGap: false,
+						min: 'dataMin',
+						max: 'dataMax',
+		                axisLine: { lineStyle: { color: '#2d3748' }, onZero: false  },
+		                axisLabel: { 
+		                    color: '#94a3b8',show:false,
+		                    fontSize: 12,
+							
+		                },
+		                axisTick: { show: false },
+		                splitLine: { show: false },
+		                splitNumber: 10,
+						axisPointer: {
+						    label: {
+						      show: false // 隐藏 X 轴浮框
+						    }
+						}
+		            },
+		            {
+		                type: 'category',
+		                gridIndex: 1,
+						min: 'dataMin',
+						max: 'dataMax',
+						boundaryGap: false,
+		                data: timeData,
+		                axisLine: { lineStyle: { color: '#2d3748' }, onZero: false },
+		                axisLabel: { 
+		                    color: '#94a3b8',
+		                    fontSize: 12
+		                },
+		                axisTick: { show: false },
+		                splitLine: { show: false },
+						axisPointer: {
+						    label: {
+						      show: false // 隐藏 X 轴浮框
+						    }
+						}
+		            }
+		        ],
+		        yAxis: [
+		            {
+						position: 'right',
+						splitNumber: 5,
+		                scale: true,
+		                gridIndex: 0,
+		                axisLine: { lineStyle: { color: '#2d3748' } },
+		                axisLabel: { 
+		                    color: '#94a3b8',
+		                    fontSize: 12,
+		                },
+						splitArea: {
+						    show: true,
+						    areaStyle: {
+						        color: ['rgba(255,255,255,0.01)', 'rgba(0,0,0,0)']
+						    }
+						},
+		                splitLine: { 
+							show:false,
+		                    lineStyle: { 
+		                        color: '#2d3748',
+		                        type: 'dashed'
+		                    } 
+		                },
+						axisPointer: {
+							 // show:false,
+						      label: {
+						        // 设置文字样式
+						        textStyle: {
+						          color: '#ddd',      // 文字颜色
+						          fontSize: 12,   
+									  // fontWeight:"bold"// 字体大小
+						        },
+						        // 设置背景颜色和边框
+						        backgroundColor: 'rgba(0,0,0,0.9)', // 背景色
+						        padding: [5, 1],    // 上下为8px，左右为12px
+								formatter:function(params){
+									
+									var price20=params.value*0.8;
+									var first=parseInt((params.value-chart.lastPrice)/chart.lastPrice*1000)/10+"%"
+									var second=+parseInt((chart.lastPrice-params.value)/params.value*1000)/10+"%"
+									// return first+"\n"+second
+									return xNum(params.value,3)+"\n"+xNum(price20,3)+"\n"+first+"\n"+second
+								}
+						    },
+						},
+		            },
+		            {
+		               position: 'right',
+						scale: true,
+						gridIndex: 1,
+						splitNumber: 3,
+						// axisLabel: { show: false },
+						axisLine: { show: false },
+						axisTick: { show: false },
+		                splitLine: { show: false },
+						axisLabel: {
+						    color: 'rgba(255,255,255,0.5)',
+						    fontSize: 12,
+							zIndex:1111,
+							margin:7,
+						    // inside: true,
+							formatter:function(value){
+								return energyback(value)
+							}
+						},
+		            }
+		        ],
+		        dataZoom: dataZoomConfig,
+		        series: [
+		            {
+		                name: symbol.name,
+		                type: 'candlestick',
+		                data: klineValues,
+						barWidth: '80%',
+		                itemStyle: {
+		                    // 使用指定的颜色
+		                    color: '#39d566',    // 绿色 - 阳线（涨）
+		                    color0: '#ef4e63',   // 红色 - 阴线（跌）
+		                    borderColor: '#39d566',
+		                    borderColor0: '#ef4e63',
+		                    borderWidth: 1
+		                },
+						markLine: {
+						    silent: true,
+						    symbol: 'none',
+						    data: [{
+								//目标线
+								yAxis: symbol.targetPrice,
+								lineStyle: {
+									type: 'dashed',
+									width: 1,
+									color: 'rgba(166, 255, 0, 1)' // 目标价：绿色
+								},
+								label: {
+									show: true,
+									color: 'rgba(166, 255, 0, 1)',
+									backgroundColor: 'rgba(0,0,0,0.9)',
+									padding: [5, 0],
+									fontSize: 12,
+									formatter: function (params) {
+										return params.value
+									}
+								}
+							},{
+								//最新价格
+								yAxis: chart.lastPrice.toFixed(10),
+								lineStyle: {
+									type: 'dashed',
+									width: 0.5,
+									color: 'rgba(10, 255, 255, 1)' // 当前价：黄色
+								},
+								label: {
+									show: true,
+									color: 'rgba(10, 255, 255, 1)',
+									backgroundColor: 'rgba(0,0,0,0.9)',
+									padding: [5, 0],
+									fontSize: 12,
+									formatter: function (params) {
+										return Number(params.value).toFixed(5)
+									}
+								}
+							}]
+						}
+		            },
+		            {
+		                name: '成交量',
+		                type: 'bar',
+						barWidth: '80%',     // 关键
+						 barGap: '0%',        // ❗不要留缝
+						 barCategoryGap: '0%', // ❗类目之间不留空
+		                xAxisIndex: 1,
+		                yAxisIndex: 1,
+		                data: volumeData,
+		                itemStyle: {
+		                    color: function(params) {
+		                        return params.data[2] >= 0 ? '#39d566' : '#ef4e63';
+		                    }
+		                },
+						markPoint: {
+							data: [
+							  {
+								type: 'max', // 自动识别最大值
+								name: '最高值', // 显示的标签名称
+								symbol: 'arrow',
+								symbolSize: 0.5,
+								label:{
+									color: '#fff',
+									position: 'top',  // 在标记点上方显示
+									formatter:function(params){
+										return energyback((params.value).toFixed(2))
+									}
+								}
+							  }
+							]
+						  }
+		            }
+		        ]
+		    };
+		    
+		    // 设置图表选项
+		    chart.setOption(option, true);
+		}
+		
+		
+        // 获取间隔分钟数
+        function getmin(interval) {
+            const map = { 
+                '1m': 1, '5m': 5, '15m': 15, '30m': 30, 
+                '1h': 60,'2h': 120, '4h': 240, '1d': 1440, '1w': 10080 
+            };
+            return map[interval] || 5;
+        }
+        
+        // 开始定时刷新
+        function startRefresh2() {
+			var countdownIntervalId;
+            if (refreshIntervalId) {
+                clearInterval(refreshIntervalId);
+            }
+            
+            if (countdownIntervalId) {
+                clearInterval(countdownIntervalId);
+            }
+            
+            const interval = parseInt($('#refreshInterval').val()) * 1000;
+            countdownValue = parseInt($('#refreshInterval').val());
+            updateCountdown();
+            
+            // 开始倒计时
+            countdownIntervalId = setInterval(updateCountdown, 1000);
+            
+            // 开始数据刷新
+            refreshIntervalId = setInterval(() => {
+                if (isRefreshing && HeatMonitor.length > 0) {
+                    const globalTimeScale = $('#globalTimeScale').val();
+                    HeatMonitor.forEach(symbol => {
+                        fetchKlineData(symbol, globalTimeScale);
+                    });
+                    countdownValue = parseInt($('#refreshInterval').val());
+                }
+            }, interval);
+        }
+		function startRefresh() {
+		    // 清除旧的定时器
+		    if (refreshIntervalId) {
+		        clearInterval(refreshIntervalId);
+		        refreshIntervalId = null;
+		    }
+		    if (window._countdownTimer) {
+		        clearInterval(window._countdownTimer);
+		    }
+		    if (window._alignTimeout) {
+		        clearTimeout(window._alignTimeout);
+		    }
+		
+		    const intervalSec = parseInt($('#refreshInterval').val()); // 单位：秒
+		    const offsetSec = 5; // 固定偏移：每个整点后第5秒触发
+		
+		    // 执行一次刷新
+		    function doRefresh() {
+		        if (isRefreshing && HeatMonitor.length > 0) {
+		            const globalTimeScale = $('#globalTimeScale').val();
+		            HeatMonitor.forEach(symbol => {
+		                fetchKlineData(symbol, globalTimeScale);
+		            });
+		        }
+		    }
+		
+		    // 计算距离下一个对齐时刻还有多少毫秒
+		    function msToNextAligned() {
+		        const now = new Date();
+		        const totalSec = now.getMinutes() * 60 + now.getSeconds();
+		        // 当前在周期内已过了多少秒（相对于整点+offset）
+		        const elapsed = (totalSec - offsetSec % intervalSec + intervalSec) % intervalSec;
+		        const remaining = intervalSec - elapsed;
+		        const ms = remaining * 1000 - now.getMilliseconds();
+		        return ms <= 0 ? ms + intervalSec * 1000 : ms;
+		    }
+		
+		    // 倒计时显示（每秒更新）
+		    function startCountdown() {
+		        if (window._countdownTimer) clearInterval(window._countdownTimer);
+		        window._countdownTimer = setInterval(() => {
+		            if (!isRefreshing) {
+		                $('#countdown').text('已暂停');
+		                return;
+		            }
+		            const ms = msToNextAligned();
+		            const sec = Math.ceil(ms / 1000);
+		            $('#countdown').text(sec + '秒');
+		        }, 500); // 500ms刷新一次，显示更顺滑
+		    }
+		
+		    // 对齐到第一个触发时刻
+		    function alignAndStart() {
+		        const waitMs = msToNextAligned();
+		        $('#countdown').text(Math.ceil(waitMs / 1000) + '秒');
+		
+		        window._alignTimeout = setTimeout(() => {
+		            doRefresh(); // 第一次对齐触发
+		
+		            // 之后每隔 intervalSec 秒循环触发
+		            refreshIntervalId = setInterval(doRefresh, intervalSec * 1000);
+		        }, waitMs);
+		    }
+		
+		    alignAndStart();
+		    startCountdown();
+		}
+        
+        // 更新倒计时显示
+        function updateCountdown() {
+            if (isRefreshing) {
+                $('#countdown').text(countdownValue + '秒');
+                if (countdownValue > 0) {
+                    countdownValue--;
+                }
+            } else {
+                $('#countdown').text('已暂停');
+            }
+        }
+        
+        // 切换刷新状态
+        function toggleRefresh2() {
+            isRefreshing = !isRefreshing;
+            $('#toggleRefresh').text(isRefreshing ? '暂停刷新' : '继续刷新');
+            $('#statusText').text(isRefreshing ? '运行中' : '已暂停');
+            
+            if (isRefreshing) {
+                countdownValue = parseInt($('#refreshInterval').val());
+                updateCountdown();
+            } else {
+                $('#countdown').text('已暂停');
+            }
+        }
+		function toggleRefresh() {
+		    isRefreshing = !isRefreshing;
+		    $('#toggleRefresh').text(isRefreshing ? 'PAUSE' : '继续');
+		
+		    if (isRefreshing) {
+		        startRefresh(); // 重新对齐时刻
+		    } else {
+		        $('#countdown').text('已暂停');
+		    }
+		}
+		
+        // 更新所有图表的成交量阈值
+        function updateAllVolumeThresholds() {
+            console.log("成交量阈值已更新为:", $('#volumeThreshold').val() + "倍");
+        }
+        
+        // 全局时间尺度切换
+        function changeGlobalTimeScale() {
+            const globalTimeScale = $('#globalTimeScale').val();
+            
+            // 更新所有图表的时间尺度按钮状态
+            $('.chart-wrapper').each(function() {
+                const chartActions = $(this).find('.chart-actions');
+                chartActions.find('.time-scale-btn').removeClass('active');
+                chartActions.find(`.time-scale-btn[data-interval="${globalTimeScale}"]`).addClass('active');
+            });
+            
+            // 重新加载所有图表数据
+            if (HeatMonitor.length > 0) {
+                HeatMonitor.forEach(symbol => {
+                    fetchKlineData(symbol, globalTimeScale);
+                });
+            }
+        }
+        
+        // 显示无数据图表
+        function showNoDataChart(symbol) {
+            const chart = chartInstances[symbol.name];
+            
+            if (!chart) return;
+            
+            const option = {
+                title: {
+                    text: '暂无数据',
+                    left: 'center',
+                    top: 'center',
+                    textStyle: {
+                        fontSize: 12,
+                        fontWeight: 'normal',
+                        color: '#999'
+                    }
+                },
+                xAxis: { show: false },
+                yAxis: { show: false },
+                series: []
+            };
+            
+            chart.setOption(option, true);
+        }
+   
+		function energyback(num){
+			var aaa=num;
+			if (typeof value !== 'number') {
+			        aaa=Number(aaa);
+			    }
+			
+			if(num/1000000000>=1){
+				return parseInt(num/1000000000)+"B";
+			}else if(num/1000000>=1){
+				return parseInt(num/1000000)+"M";
+			}else if(num/1000>=1){
+				return parseInt(num/1000)+"K"
+			}else{
+				return num
+			}
+		}
+	
+		function getLocal(name){
+			return JSON.parse(localStorage.getItem(name))
+		}
+		
+		function setLocal(name,data){
+			localStorage.setItem(name,JSON.stringify(data))
+		}
+		
+		//获取本地key数据中的key=val成员
+		function getLocalItem(name,key,val){
+			var local=JSON.parse(localStorage.getItem(name));
+			if(local.length){
+				var a=local.find(member=>member[key]==val);
+				if(a){
+					return a
+				}else{
+					return ""
+				}
+			}else{
+				return ""
+			}
+			
+		}
+	
+		function changeLocal(name,key,val){
+			//从列表中找出指定symbol对象
+			var member=HeatMonitor.find(member => member.name == name);
+			if (!member.hasOwnProperty(key)) {
+			  member[key] = val;
+			}
+			member[key]=val;
+			setLocal("HeatMonitor",HeatMonitor)
+		}
+	
+		//保留3位非0数字
+		function xNum(numStr) {
+			
+			// 尝试将字符串转换为数字
+			const number = parseFloat(numStr);
+			
+			// 检查转换结果是否为有效数字
+			if (isNaN(number)) {
+			   return;
+			}
+			// 判断是否为整数
+			if (Number.isInteger(number)) {
+				return number//.toString();
+			}
+			
+			// 对于小数，保留三位有效数字
+			// 使用toPrecision方法指定有效数字位数[6,7](@ref)
+			let result = number.toPrecision(3);
+			
+			// 移除可能存在的末尾小数点（例如将"123."转换为"123"）
+			if (result.endsWith('.')) {
+				result = result.slice(0, -1);
+			}
+			return result;
+		}
+	</script>
+</body>
+</html>

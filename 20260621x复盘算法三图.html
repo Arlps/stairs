@@ -1,0 +1,2726 @@
+<!DOCTYPE html>
+<html lang="zh">
+	<head>
+		<meta charset="UTF-8">
+		<title>20260621x复盘算法三图</title>
+		<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/8.0.1/normalize.min.css">
+		<script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+		<!-- <script src="LL.js"></script> -->
+
+		<style>
+			
+			body {
+				background: #111;
+				color: #ddd;
+				font-family: Arial;
+			}
+
+			#container {
+				display: flex;
+			}
+
+			#tradeList {
+				    min-width: 200px;
+				    max-height: 1453px;
+				    overflow-y: scroll;
+				    /* overflow: auto; */
+				    /* border-right: 1px solid #333; */
+				    background: #81a9b2;
+			}
+			.trade {
+				padding:0px 4px;
+				padding-bottom: 4px;
+				/* border-bottom: 1px solid #486b67; */
+				
+			}
+
+			.trade:hover {
+				background: #2a4663!important;
+			}
+
+			.trade.active {
+				    /* background: rgb(221 28 28 / 20%); */
+				    border-left: 7px solid #ec4000;
+			}
+			.trade:nth-child(odd) {
+			  /* background-color: #2a3535; */
+			  
+			}
+			.trade{ 
+				    padding: 10px 4px;
+				    /* border-bottom: 1px dashed rgb(185 214 72 / 83%); */
+				    background: #1c1d1e;
+				    margin: 2px 0;
+			}
+			
+
+			#toolbar {
+				padding: 10px;
+			}
+
+			button {
+				margin-right: 5px; border:none;
+				border-radius: 2px;
+				cursor: pointer;font-size: 18px;
+			}
+			
+			.btn-active{
+				background-color: #f50;
+				color: white;
+			}
+			.trade span{
+				margin-right: 5px;
+			}
+			.xnum{
+				font-size: 10px;
+				    padding: 1px 2px;
+				    background-color: #00578e;
+				    color: honeydew;
+				    font-weight: bold;
+				    border-radius: 3px;
+			}
+			.xname {
+			    /* font-weight: bold; */
+			    color: yellow;
+			    font-size: 16px;
+			    width: 115px;
+			    cursor: pointer;
+			    display: inline-block;
+			    width: 105px;
+			    overflow: hidden;
+			    display: inline-block;
+			    max-width: 100%;
+			    white-space: nowrap;
+			    overflow: hidden;
+			    /* text-overflow: ellipsis; */
+			    vertical-align: bottom;
+			}
+			.xname:hover{
+				color: #2cffd5;
+			}
+			.xdirection{
+				    background-color: #008a8b;
+				    color: white;
+				    font-size: 12px;
+				    padding: 2px;
+				    border-radius: 3px;
+				    font-weight: bold;
+				
+			}
+			.xpercent{
+				font-weight: bold;    color: #2ea660;
+			}
+			.xprofit{
+				font-size: 12px;color: #ee2e38;
+			}
+			.xtime{
+				    font-size: 14px;
+				    width: 112px;
+				    /* font-weight: bold; */
+				    color: #7cd4e2;
+			}
+			.chart-wrap {
+				/* width: 700px;*/
+				/* height: 1000px; */
+				/* flex: 1; */
+				min-width: 200px;
+				width: 100%;
+			}
+			.chart-box {
+				/* flex: 1; */
+				
+				/* height: 90vh; */
+				height: 800px;
+				border: 1px dashed #ccc;
+				padding:0px 10px;
+			}
+			.x{
+				margin-right: 20px;cursor: pointer;
+			}
+			.x:hover{ color: red; font-weight: bold; }
+			a,
+			a:link,
+			a:visited,
+			a:hover,
+			a:active {
+			  text-decoration: none;
+			  color: inherit;
+			}
+			.link{ font-size: 14px}
+			
+			
+			.heightplus{height: 1300px!important;}
+			
+			.tip{
+				border: none;
+				width: 70%;
+				font-size: 16px;
+				/* border: 0.5px solid #7c7f63; */
+				color: #fff;
+				padding: 1px;
+				font-weight: 100;
+				background: rgb(255 255 255 / 13%);
+			}
+			.make-tip{
+				    font-size: 10px;
+				 font-size: 12px;
+				     border-radius: 3px;
+				     background-color: rgb(161 104 11);
+				     color: #FFF;
+				     cursor: pointer;
+				     margin-right: 0px !important;
+				     padding: 3px 5px;
+			}
+			.btns{
+				    color: white;
+				    background: #1282b7;
+				    font-weight: bold;
+			}
+			.space{
+				margin-left: 20px
+			}
+			.tips{
+				display:none
+			}
+			
+			.detail-box{
+				padding: 2px 10px;
+			}
+			#detail{
+				width: 95%;
+				    margin-left: 5px;
+				    background: rgba(255, 255, 255, 0.1);
+				    border: none;
+				    color: #fff;
+				    font-size: 20px;
+			}
+			.done{
+				background-color: #dadd20; color: #000;
+			}
+			.done2{
+				background-color: #39cbd9; color: #000;
+			}
+			span.link a {
+			       background: #3d6e8c;
+			       display: inline-block;
+			       width: 20px;
+			       border-radius: 5px;
+			       text-align: center;
+			       color: #fff3f3;
+			       padding: 0;
+			       margin: 0;
+			       font-weight: bold;
+			   }
+			}
+			.link a:hover{
+				/* color: #d6ff05!important; */
+				background: #2191f3;
+				/* font-weight: bold; */
+				/* font-size: 12px */
+			}
+		
+			/* 极细滚动条 */
+			::-webkit-scrollbar {
+				width: 10px;
+				height: 4px;
+				background: transparent;
+			}
+			
+			::-webkit-scrollbar-track {
+				background: rgba(0, 0, 0, 0.05);
+			}
+			
+			::-webkit-scrollbar-thumb {
+				background: #9ffc13;
+				border-radius: 4px;
+			}
+			
+			::-webkit-scrollbar-thumb:hover {
+				background: #d2e807;
+			}
+			
+			.detail-mark::after {
+			    content: "*";
+			    color: yellow;
+			    margin-left: 5px;
+			}
+			
+			.chart-wrap {
+			    /* transition: width 0.3s ease; */
+			}
+
+		</style>
+	</head>
+
+	<body>
+
+		<div id="toolbar">
+			<!-- <button id="load">re-load</button> -->
+			<button id="total">TOTAL</button>
+			<select name="" id="source">AnalysisBTC
+				<option value="AnalysisStairs">阶梯</option>
+				<option value="AnalysisData4">承接</option>
+				
+				<option value="AnalysisSignal">信号</option>
+				<option value="AnalysisStructure">结构</option>
+				<option value="AnalysisData2">常规币</option>
+				<option value="AnalysisData3">暴增币</option>
+				<option value="AnalysisStair">阶梯启动</option>
+				<option value="AnalysisBTC">BTC</option>
+			</select>
+			<span>
+				<input type="text" id="txt">
+				<button id="addTrade">添加</button>
+				<button id="coinglass">coinglass</button>
+				<button id="resize">调整</button>
+			</span>
+			<button class="btn interval" data-interval="1m">1m</button>
+			<button class="btn interval" data-interval="5m">5m</button>
+			<button class="btn interval" data-interval="15m">15m</button>
+			<button class="btn interval" data-interval="30m">30m</button>
+			<button class="btn interval" data-interval="1h">1h</button>
+			<button class="btn interval" data-interval="2h">2h</button>
+			<!-- <button class="btn interval" data-interval="3h">3h</button> -->
+			<button class="btn interval" data-interval="4h">4h</button>
+			<!-- <button class="btn interval" data-interval="6h">6h</button> -->
+			<button class="btn interval" data-interval="8h">8h</button>
+			<button class="btn interval" data-interval="12h">12h</button>
+			<button class="btn interval btn-active" data-interval="1d">1d</button>
+			<button class="btn interval" data-interval="1w">1w</button>
+			<button class="btn interval" data-interval="1M">1M</button>
+			<span class="space">
+				
+				<button id="left" class="btns">  <<<  </button>
+				<button id="right" class="btns">  >>>  </button>
+			</span>
+			<label style="margin:0 10px; vertical-align: middle; line-height: 1; cursor: pointer; ">
+			    <input type="checkbox" id="syncBTC" style="vertical-align: middle; margin-right: 3px; cursor: pointer; width: 20px; height: 1.25rem;">
+			    <span style="vertical-align: middle; font-size: 18pxpx;">同步BTC</span>
+			</label>
+			<span>
+				<input type="text" id="calc">
+				<button id="btn-calc" class="btns">calc</button>
+				<button id="btn-cls" class="btns">cls</button>
+			</span>
+			<span id="">
+				
+			</span>
+			<span class="space">
+				<button id="btn-detect" class="btns">detect</button>
+				<input type="text" id="testK">
+				<span class="tips"></span>
+			</span>
+		</div>
+		<!-- <p id="data"></p> -->
+		<div id="container">
+			
+			<div id="tradeList"></div>
+			<div class="chart-wrap">
+				<div class="detail-box">
+					<button id="save-detail">save</button>
+					<input type="text" id="detail">
+				</div>
+				<div class="chart-box" id="chart1"></div>
+				<div class="chart-box" id="chart2"></div>
+			</div>
+			
+		</div>
+
+		<script>
+			$(document).ready(function(){
+				
+				
+				var initData=[{
+					name:"BTCUSDT",
+					time:"",
+					tip:""
+				}]
+				if(!getLocal("AnalysisData2")){
+					setLocal("AnalysisData2",initData);
+					// console.log(getLocal(dataX))
+				}
+				if(!getLocal("AnalysisData3")){
+					setLocal("AnalysisData3",initData);
+					// console.log(getLocal(dataX))
+				}
+				if(!getLocal("AnalysisData4")){
+					setLocal("AnalysisData4",initData);
+					// console.log(getLocal(dataX))
+				}
+				if(!getLocal("AnalysisBTC")){
+					setLocal("AnalysisBTC",initData);
+					// console.log(getLocal(dataX))
+				}
+				if(!getLocal("AnalysisStair")){
+					setLocal("AnalysisStair",initData);
+					// console.log(getLocal(dataX))
+				}
+				
+				if(!getLocal("AnalysisSignal")){
+					setLocal("AnalysisSignal",initData);
+					// console.log(getLocal(dataX))
+				}
+				if(!getLocal("AnalysisStructure")){
+					setLocal("AnalysisStructure",initData);
+					// console.log(getLocal(dataX))
+				}
+				if(!getLocal("AnalysisStairs")){
+					setLocal("AnalysisStairs",initData);
+					// console.log(getLocal(dataX))
+				}
+				
+				renderTradeList(trades);
+				
+				// addtogether()
+				
+				// 响应窗口大小变化
+				$(window).resize(function() {
+				    chart1.resize();
+					chart2.resize();
+				});
+				
+
+				$("#resize").click(function(){
+					$(".chart-box").toggleClass("heightplus");
+					chart1.resize();
+					chart2.resize();
+				})
+				
+				
+				$("#left").click(function(){
+					loadAdditionalKlines('previous');
+				})
+				$("#right").click(function(){
+					loadAdditionalKlines('next');
+				});
+				
+				
+				$("body").on("dblclick",".make-tip",function(){
+					const symbolx=$(this).parents(".trade").data("name");
+					const arrx = trades.filter(item => item.name == symbolx);
+					console.log(arrx)
+					renderTradeList(arrx)
+				})
+				
+				// $("#load").click(function(){
+				// 	trades =getLocal(dataX);
+				// 	renderTradeList(trades)
+				// })
+				
+				//加载当前数据源全部
+				$("#total").click(function(){
+					trades =getLocal(dataX);
+					renderTradeList(trades)
+				})
+				
+				
+				//更换数据源动作
+				$("#source").change(function(){
+					dataX=$("#source").val();
+					trades =getLocal(dataX);
+					// console.log(trades);
+					renderTradeList(trades)
+				})
+				
+				//新增USDT
+				$("#addTrade").click(function(){
+					const item={
+						name:($("#txt").val()).trim(),
+						time:"",
+						tip:"",
+						id:randomID()
+					};
+					trades.push(item);
+					setLocal(dataX,trades)
+					renderTradeList(trades);
+				})
+				
+				/* ========== 切换周期 ========== */
+				$('.interval').on('click', function() {
+				    saveCurrentZoom(); // ← 切换前保存
+				    $(this).addClass("btn-active").siblings().removeClass("btn-active");
+				    currentInterval = $(this).data('interval');
+				    intervalTrans = intervalToTimestamp(currentInterval);
+				    loadKlines();
+					detect()
+				});
+				
+				let clickTimer = null;  // 在全局变量区加这一行
+				
+				chart1.on('click', function (params) {
+				    if (params.seriesType !== 'candlestick') return;
+				    const newtime = params.name;
+				
+				    if (clickTimer) clearTimeout(clickTimer);
+				
+				    clickTimer = setTimeout(function() {
+				        saveCurrentZoom(); // ← 单击确认前保存
+				        symbolx.time = newtime;
+						// console.log(newtime)
+						$("#testK").val(newtime)
+				        loadKlines();
+				        clickTimer = null;
+				    }, 250);
+				});
+				
+				chart1.on('dblclick', function (params) {
+				    if (params.seriesType !== 'candlestick') return;
+					
+					dblclickOnCandle = true; // 标记本次双击是K线
+					    setTimeout(function() { dblclickOnCandle = false; }, 0); // 下一帧重置
+				
+				    // 取消单击的延迟执行
+				    if (clickTimer) {
+				        clearTimeout(clickTimer);
+				        clickTimer = null;
+				    }
+				
+				    const newtime = params.name;
+				
+				    // 保存时间到本地
+				    for (var i = 0; i < trades.length; i++) {
+				        if (trades[i].id == symbolx.id) {
+				            trades[i].time = newtime;
+				            break;
+				        }
+				    }
+				    setLocal(dataX, trades);
+				
+				    // 同步更新 symbolx（下次打开以此为中心）
+				    symbolx.time = newtime;
+				
+				    // 更新左边列表显示
+				    $(".trade[data-id=" + symbolx.id + "]").find(".xtime").html(newtime);
+					 tips("✅ 已保存：" + newtime);
+				});
+				
+				// 双击K线图空白处（非candlestick区域）→ 画水平线
+				chart1.getZr().on('dblclick', function(event) {
+				    if (!symbolx) return;
+				
+				    const pointInPixel = [event.offsetX, event.offsetY];
+				
+				    // 检测是否点在 candlestick 数据点上
+				    const pointInGrid = chart1.containPixel('grid', pointInPixel);
+				    if (!pointInGrid) return;
+				
+				    // 把像素坐标转成数据坐标，拿到对应的 xIndex
+				    const dataCoord = chart1.convertFromPixel({ seriesIndex: 0 }, pointInPixel);
+				    if (!dataCoord) return;
+				
+				    const xIndex = Math.round(dataCoord[0]);
+				    const option = chart1.getOption();
+				    const seriesData = option.series[0].data;
+				
+				    if (xIndex >= 0 && xIndex < seriesData.length) {
+				        const bar = seriesData[xIndex]; // [open, close, low, high]
+				        const open  = bar[0];
+				        const close = bar[1];
+				        const low   = bar[2];
+				        const high  = bar[3];
+				
+				        const mouseY = dataCoord[1];
+				
+				        // 鼠标y值在该K线的最高最低范围内，认为点在K线上，不画线
+				        if (mouseY >= low && mouseY <= high) {
+				            return;
+				        }
+				    }
+				
+				    // 以下是画线逻辑，只有点击在空白处才执行
+				    const priceY = dataCoord[1];
+				    if (priceY == null || isNaN(priceY)) return;
+				
+				    for (let i = 0; i < trades.length; i++) {
+				        if (trades[i].id == symbolx.id) {
+				            if (!trades[i].line) trades[i].line = [];
+				            trades[i].line.push(priceY);
+				            setLocal(dataX, trades);
+				            globeLines = trades[i].line.slice();
+				            break;
+				        }
+				    }
+				
+				    updateMarkLines();
+				    tips('📏 已添加水平线: ' + xNum(priceY));
+				});
+				
+				// 右键点击 markLine → 删除最近的水平线
+				chart1.getZr().on('contextmenu', function(event) {
+				    if (!symbolx || !globeLines || globeLines.length === 0) return;
+				    event.event.preventDefault(); // 阻止浏览器默认右键菜单
+				
+				    const mouseY = event.offsetY;
+				    const threshold = 6; // 像素误差范围
+				
+				    // 找到距离鼠标y坐标最近的线
+				    let closestIdx = -1;
+				    let closestDist = Infinity;
+				
+				    globeLines.forEach((y, idx) => {
+				        const p = chart1.convertToPixel({ seriesIndex: 0 }, [0, y]);
+				        if (!p) return;
+				        const dist = Math.abs(p[1] - mouseY);
+				        if (dist < closestDist) {
+				            closestDist = dist;
+				            closestIdx = idx;
+				        }
+				    });
+				
+				    if (closestIdx === -1 || closestDist > threshold) return;
+				
+				    const removedY = globeLines[closestIdx];
+				
+				    // 从数据里删除
+				    for (let i = 0; i < trades.length; i++) {
+				        if (trades[i].id == symbolx.id) {
+				            trades[i].line = trades[i].line.filter((_, i) => i !== closestIdx);
+				            setLocal(dataX, trades);
+				            globeLines = trades[i].line.slice();
+				            break;
+				        }
+				    }
+				
+				    // 清空所有graphic再重绘
+				    chart1.setOption({ graphic: [] }, false);
+				    updateMarkLines();
+				    tips('🗑 已删除水平线: ' + xNum(removedY));
+				});
+				
+				chart1.getZr().on('click', function (event) {
+				    const point = [event.offsetX, event.offsetY];
+				
+				    globeLines.forEach((y, idx) => {
+				        const p = chart1.convertToPixel({ seriesIndex: 0 }, [0, y]);
+				        if (!p) return;
+				
+				        if (Math.abs(p[1] - point[1]) < 5) {
+				            globeLines.splice(idx, 1);
+				
+				            // 同步本地
+				            for (let i = 0; i < trades.length; i++) {
+				                if (trades[i].id == symbolx.id) {
+				                    trades[i].line = globeLines.slice();
+				                    setLocal(dataX, trades);
+				                    break;
+				                }
+				            }
+				
+				            updateMarkLines();
+							tips('🗑 已删除水平线: ');
+				        }
+				    });
+				});
+				
+				chart1.on('dataZoom', function() {
+				    updateMarkLines();
+				});
+				
+				
+				
+				//保存细节描述
+				$("#save-detail").click(function(){
+					// if (confirm('Confirm?') ){
+						const idX=symbolx.id;
+						const tipX=$(this).siblings(".tip").val(); 
+						for (var i = 0; i < trades.length; i++) {
+							if(trades[i].id==idX){
+								trades[i].detail=$("#detail").val();
+								setLocal(dataX,trades);
+								$(this).addClass("done")
+								break;
+							}
+						}
+					// }
+				})
+				
+				//计算器
+				$("#btn-calc").click(function(){
+					const str=$("#calc").val();
+					if(str.indexOf(" ")){
+						const a=str.split(" ");
+						const res= parseInt((a[1]-a[0]) / a[0] * 100)
+						$(this).html(res+"%")
+					}
+				})
+				$("#btn-cls").click(function(){
+					$("#calc").val("");
+					$("#btn-calc").html("calc")
+				})
+				
+				//算法检测
+				$("#btn-detect").click(function(){
+					
+					detect();
+					
+				})
+				
+				$("#coinglass").click(function(){
+					window.open("https://www.coinglass.com/tv/zh/Binance_"+symbolx.name, '_blank');
+				})
+				
+				// ！！！！慎用 赋值每个独一无二的id
+				// giveID()
+				
+			})
+			//================================================================================================================
+			//读取本地数据   赋值全局变量trades
+			dataX=$("#source").val();
+			trades =getLocal(dataX);
+			//选中的合约 全局对象
+			let symbolx = null;
+			let globeLines = [];
+			let dblclickOnCandle = false;
+			
+			let currentInterval = '1d';
+			let intervalTrans=intervalToTimestamp(currentInterval);
+			const preK=500;
+			const afterK=500;
+			const moreK=500;
+			const chart1 = echarts.init(document.getElementById('chart1'));
+			const chart2 = echarts.init(document.getElementById('chart2'));
+			chart1.group = 'group1';
+			chart2.group = 'group1';
+			echarts.connect('group1');
+			
+			const upColor = '#39d566';//'#18BE4C';
+			const downColor =  '#ef4e63';//'#FB2242';
+			var range;
+			
+			let detectData=[];
+			let globeDetectPoints = []; // 存储检测出的启动点时间
+			let globeKlineData=[];
+			let globeKlineData2=[];
+			let globeZoom={
+				start:0,
+				end:100
+			}
+			let signal_result=[];
+			
+			function giveID(){
+				for (var i = 0; i < trades.length; i++) {
+						rades[i].id=randomID();
+				}
+				setLocal(dataX,trades)
+			}
+			
+			
+			
+			function addtogether(){
+				var brr=["1000FLOKIUSDT","AIOTUSDT","ALCHUSDT","ALPINEUSDT","B2USDT","BANANAS31USDT","BIOUSDT","BROCCOLIF3BUSDT","CKBUSDT","COAIUSDT","DASHUSDT","DOLOUSDT","DOODUSDT","EVAAUSDT","FETUSDT","FUNUSDT","HBARUSDT","HEMIUSDT","HIGHUSDT","HUSDT","HYPERUSDT","IDUSDT","JASMYUSDT","JELLYJELLYUSDT","MOODENGUSDT","MUSDT","MYXUSDT","OGUSDT","OMUSDT","PENGUUSDT","PIPPINUSDT","PUMPBTCUSDT","RUNEUSDT","SOONUSDT","TAUSDT","TNSRUSDT","VELVETUSDT","WIFUSDT","XLMUSDT","XPINUSDT","XVGUSDT","ZECUSDT","ZENUSDT"];
+				for (var i = 0; i < brr.length; i++) {
+					$("#txt").val(brr[i]);
+					$("#addTrade").trigger("click")
+				}
+			}
+			
+			
+			/* ========== 交易列表 ========== */
+			function renderTradeList(arr) {
+				// countHours(arr)
+				calander(arr)
+				// var arr=trades//.reverse();
+				if(arr.length==0){
+				 return;
+				}
+				$('#tradeList').empty();
+				
+				arr.forEach((item, i) => {
+					if(!item.tip){
+						item.tip="";
+					}
+					let detail=item.detail?item.detail:"";
+					let detailClass=item.detail?"detail-mark":"";
+					const $div = $(`
+						<div class="trade" data-name="${item.name}" id="${item.name}" data-id="${item.id}" title="${detail}">
+							<div>
+								<span class="x" data-id=${item.id}>x</span>
+								<span class="xname"><span>${item.name}</span></span>
+								<span class="link ${detailClass}">
+									<a href="https://www.binance.com/zh-CN/futures/${item.name}" target="_blank">B</a>
+									<a href="https://www.coinglass.com/tv/zh/Binance_${item.name}" target="_blank">C</a>
+								</span>
+							</div>
+							<div>
+								<input class="tip" type="text" value="${item.tip}">
+								<span class="make-tip">YES</span>
+							</div>
+							<div>
+								<span class="xtime">${item.time}</span>
+							</div>
+						</div>
+					`)
+					$('#tradeList').append($div)
+					$div.find(".xname").on('click', () => {
+					    globeZoom = { start: 0, end: 100 };
+					    $('.trade').removeClass('active');
+					    $div.addClass('active');
+					    symbolx = item;
+						// 同步水平线
+						globeLines = (item.line && item.line.length) ? item.line.slice() : [];
+					    $("#txt").val(symbolx.name);
+					
+					    $(".make-tip").removeClass("done2");
+					    $("#save-detail").removeClass("done");
+					    if (symbolx.detail) {
+					        $("#detail").val(symbolx.detail);
+					    } else {
+					        $("#detail").val("");
+					    }
+					
+					    // ↓ 新增：从 tip 里解析时间级别
+					    const tipVal = $div.find(".tip").val().trim();
+					    const validIntervals = ['1m','5m','15m','30m','1h','2h','4h','8h','12h','1d','1w','1M'];
+					
+					    // 在 tip 内容里找是否包含有效的时间级别关键词
+					    let matchedInterval = null;
+					    for (const iv of validIntervals) {
+					        // 用正则匹配完整单词，避免 "15m" 被 "5m" 误匹配
+					        const reg = new RegExp('(^|[^\\d])' + iv.replace('M', 'M') + '($|[^a-zA-Z])', 'i');
+					        if (reg.test(tipVal)) {
+					            matchedInterval = iv;
+					            break; // 取第一个匹配到的
+					        }
+					    }
+					
+					    const targetInterval = matchedInterval || '1d'; // 没匹配到就默认 1d
+					
+					    // 触发对应的 interval 按钮（复用已有逻辑）
+					    $('.interval').each(function() {
+					        if ($(this).data('interval') === targetInterval) {
+					            $(this).trigger('click');
+					        }
+					    });
+					    // trigger('click') 会自动调用 loadKlines，不需要再单独调用
+						
+						detect()
+					});
+
+					$div.find(".x").click(function(){
+						const nameX=$(this).parents(".trade").data("name");
+						const idX=$(this).data("id");
+						trades = trades.filter(trade => trade.id !== idX);
+						setLocal(dataX,trades);
+						$div.remove();
+					})
+					$div.find(".make-tip").click(function(){
+						const idX=$(this).parents(".trade").data("id");
+						const tipX=$(this).siblings(".tip").val(); 
+						for (var i = 0; i < trades.length; i++) {
+							if(trades[i].id==idX){
+								trades[i].tip=tipX;
+								setLocal(dataX,trades);
+								$(this).addClass("done2")
+								break;
+							}
+						}
+					})
+				})
+				
+				$('#tradeList').append($('.trade').get().reverse());
+			}
+
+			/* ========== 加载 K 线 ========== */
+			function loadKlines() {
+				 if (!symbolx) return;
+				
+				    // 加载前保存当前缩放状态
+				    saveCurrentZoom();
+				    const zoomRange = globeZoom.end - globeZoom.start; // 当前可视范围的百分比宽度
+				
+				    var targetTime = symbolx.time;
+				    startTime = targetTime
+				        ? (toTimestamp(transKlineTime(symbolx.time, currentInterval)) - preK * intervalTrans)
+				        : (Date.now() - preK * intervalTrans);
+				    endTime = targetTime
+				        ? (toTimestamp(transKlineTime(symbolx.time, currentInterval)) + afterK * intervalTrans)
+				        : Date.now();
+
+				const url = 'https://fapi.binance.com/fapi/v1/klines';
+				$.get(url, {
+					symbol: symbolx.name,
+					interval: currentInterval,
+					startTime: startTime,
+					endTime: endTime,
+					limit: 1000
+				}, function(res) {
+					globeKlineData=res;
+					// console.log(res);
+					
+					resizeWidth(res);
+					
+					range={
+						start:res[0][0],
+						end:res[res.length-1][0]
+					}
+					
+					 // 如果有时间点，计算以时间点为中心的 zoom
+					        if (targetTime) {
+					            const targetTs = toTimestamp(transKlineTime(symbolx.time, currentInterval));
+					            const totalMs  = res[res.length - 1][0] - res[0][0];
+					            if (totalMs > 0) {
+					                // 时间点在整个数据中的百分比位置
+					                const centerPct = (targetTs - res[0][0]) / totalMs * 100;
+					                // 以时间点为中心，保持之前的缩放范围
+					                const half = zoomRange / 2;
+					                globeZoom.start = Math.max(0,   centerPct - half);
+					                globeZoom.end   = Math.min(100, centerPct + half);
+					                // 边界修正：如果 end 超了就整体左移，start 不够就整体右移
+					                if (globeZoom.end === 100) {
+					                    globeZoom.start = Math.max(0, 100 - zoomRange);
+					                }
+					                if (globeZoom.start === 0) {
+					                    globeZoom.end = Math.min(100, zoomRange);
+					                }
+					            }
+					        }
+					renderChart(res,chart1,symbolx)
+					
+					
+					if ($('#syncBTC').is(':checked')) {
+						$.get(url, {
+							symbol: "BTCUSDT",
+							interval: currentInterval,
+							startTime: range.start,
+							endTime: range.end,
+							limit: 1000
+						}, function(res) {
+							globeKlineData2 = res;
+							resizeWidth(res);
+							renderChart(res, chart2);
+						});
+					} else {
+						// 不加载BTC时清空图2
+						chart2.clear();
+					}
+					
+					
+				});
+			}
+			
+			
+			function resizeWidth(res){
+				 // ★ 新增：同样根据数据长度调整宽度
+				var $chartWrap = $('.chart-wrap');
+				let len=res.length;
+				if (len < 100&& len>=20) {
+					$chartWrap.css('width', '40%')
+				} else if (len < 20 && len>=1){
+					$chartWrap.css('width', '20%')
+				}else  {
+					$chartWrap.css('width', '100%');
+				}
+				
+				// ★ 新增：调整宽度后触发 resize
+				setTimeout(function() {
+					chart1.resize();
+					chart2.resize();
+				}, 150);
+			}
+			
+			
+			//原始K线数据转化为echartK线数据========================================================
+			function rebuildKlineData(data){
+				const klineData=data.map(item => {
+				    const open = parseFloat(item[1]);
+				    const high = parseFloat(item[2]);
+					const low = parseFloat(item[3]);
+					const close = parseFloat(item[4]);
+				    const changePercent = ((close - open) / open * 100).toFixed(2);
+					const wavePercent=((high - low) / low * 100).toFixed(2);
+				    return {
+				        timestamp: item[0],//时间戳
+				        open: open,
+				        close: close,
+				        low: parseFloat(item[3]),
+				        high: parseFloat(item[2]),
+				        volume: parseFloat(item[5]),
+				        quoteVolume: parseFloat(item[7]),
+				        color: open > close ? downColor : upColor,
+				        changePercent: changePercent,
+						wavePercent:wavePercent,
+						time:new Date(item[0]).toLocaleString('zh-CN', {
+							year: 'numeric',
+							month: '2-digit',
+							day: '2-digit',
+							hour: '2-digit',
+							minute: '2-digit',
+							second: '2-digit',
+							hour12: false
+						})
+				    };
+				});
+				return klineData;
+			}
+			function buildXdata(klineData){
+				const category = [];
+				klineData.forEach(a => {
+					category.push(a.time)
+				})
+				return category;
+			}
+			function buildYdata1(klineData){
+				 return klineData.map(item => {
+				    return [item.open, item.close, item.low, item.high];
+				})
+			}
+			function buildYdata2(klineData){
+				return klineData.map((item, index) => {
+				    return {
+				        // value: item.volume,
+						value:item.quoteVolume,
+				        itemStyle: {
+				            color: item.color
+				        }
+				    };
+				})
+			}
+			// ★ 新增：成交量（volume，张数）
+			function buildYdata3(klineData){
+			    return klineData.map((item, index) => {
+			        return {
+			            value:item.volume,
+			            itemStyle: {
+			                color: item.color
+			            }
+			        };
+			    })
+			}
+			//=======================================================================================
+			
+
+			/* ========== 绘制 K 线并标记买卖点 ========== */
+			function renderChart(data,chart,coin) {
+				const klineData = rebuildKlineData(data);
+				if (chart === chart1){
+					detectData=klineData;
+					// console.log(detectData)
+				}
+				
+				const category = buildXdata(klineData); 
+				const yData1=buildYdata1(klineData);
+				const yData2=buildYdata2(klineData);
+				const yData3=buildYdata3(klineData);  // ★ 新增
+				
+				 // 存储最新价格
+				 chart.lastPrice =  klineData[klineData.length - 1].close;
+				  // fillArr(klineData,1000-klineData.length);
+				  // const endper=(klineData.length/1000*100).toFixed(2);
+				 var coord=[];
+				 if(symbolx.time){
+				 	const transTargetTime=transKlineTime(symbolx.time, currentInterval)
+				 	const targetKIndex = category.indexOf(transTargetTime);
+				 	// coord=[targetKIndex, klineData[targetKIndex].high]
+					coord=[targetKIndex, klineData[targetKIndex].low*0.97]
+				 }
+				 
+				 //设置水印
+				 var water="";
+				 if(!coin){
+				 	water="BTCUSDT"+" : "+currentInterval+"-"+data.length+" （"+symbolx.tip+"）";
+				 }else{
+				 	water=coin.name+" : "+currentInterval+"-"+data.length+" （"+symbolx.tip+"）";
+				 }
+				 
+				// 生成检测出的启动点标记数据
+				const detectMarkData = globeDetectPoints.map(item => {
+				    const idx = category.indexOf(item.time);
+					// console.log(item)
+				    if (idx === -1) return null;
+				    return {
+				        name: '启动点',
+				        coord: [idx, klineData[idx].high * 1.005],
+				        symbol: 'pin',
+				        symbolSize: 0,
+				        itemStyle: {
+				            color: '#2ae6fa',
+				            // borderColor: '#ff4500',
+				            // borderWidth: 1
+				        },
+				        label: {
+							fontSize: 15,
+				            color: '#2ae6fa',  
+							fontFamily: 'Arial', 
+							// fontWeight: 'bold',
+							position: 'top',           // 标签位置：'top' | 'bottom' | 'left' | 'right' | 'inside'
+							    distance: 5,  
+							formatter: function (){
+								return item.signal
+							} 
+				        }
+				    };
+				}).filter(Boolean);
+				 
+				//==================================================
+				// chart.clear()
+				chart.setOption({
+					backgroundColor: '#111',
+					graphic: [{
+						id: 'watermark',
+					    type: 'text',
+					    z: -10,                // 放在最底层
+					    silent: true,
+					    left: 'left',
+					    top: 'top',
+					    style: {
+					        text: water,
+					        fill: 'rgba(255,255,255,0.2)',
+					        fontSize: 50
+					    }
+					}],
+					animation: false,
+					tooltip: {
+					    trigger: 'axis',
+					    axisPointer: {
+					        type: 'cross',
+					        label: {
+					            backgroundColor: '#6a7985'
+					        }
+					    },
+					    backgroundColor: 'rgba(255,255,255,0.1)',
+					    borderColor: '#333',
+						padding:[2,2],
+					    textStyle: {
+					        color: '#e0e0e0',
+							fontSize:20
+					    },
+						position: function (point, params, dom, rect, size) {
+							let x = point[0] - 200;
+							let y = point[1] - 150;
+											
+							// 防止超出左/上边界
+							x = Math.max(0, x);
+							y = Math.max(0, y);
+											
+							return [x, y];
+						},
+					    formatter: function(params) {
+							// console.log(params);
+							if(params[0].data[1]){
+								const data = params[0].data;
+								const kline = klineData[params[0].dataIndex];
+								// console.log(params)
+								let obj=lineObj({
+									open:data[1],
+									close:data[2],
+									low:data[3],
+									high:data[4]
+								})
+								return [
+									// '开盘: ' + kline.open.toFixed(4) + '<br/>',
+									// '收盘: ' + data[1] + '<br/>',
+									// '最低: ' + data[2] + '<br/>',
+									// '最高: ' + data[3] + '<br/>',
+									"<span class='ctips3'>涨:</span> <span class='ctips'>"+kline.changePercent + '%</span>',
+									"<span class='ctips3'>振:</span> <span class='ctips'>"+kline.wavePercent + '%</span><br/>',
+									
+									"<span class='ctips3'>实体:</span> <span class='ctips'>"+obj.middle_all + " </span><span class='ctips3'>下线:</span> <span class='ctips'>"+obj.down_all + '</span><br/>',
+									"<span class='ctips3'>量:</span> <span class='ctips'>"+energyback(kline.volume.toFixed(2)) + "</span><span class='ctips3'>; 额:</span> <span class='ctips'>"+energyback(kline.quoteVolume.toFixed(2)) + "</span><br/>",
+									"<span class='ctips2'>"+params[0].axisValue + '</span><br/>',
+								].join('');
+							}
+					        
+					    }
+					},
+					axisPointer: {
+					  link: [
+					    {
+					      xAxisIndex: 'all'   // 🔥 所有 xAxis 共享一个十字线
+					    }
+					  ]
+					},
+					grid: [
+					    { left: '2%', right: '3%', top: '3%',   height: '52%' },  // K线
+					    { left: '2%', right: '3%', top: '58%',  height: '18%' },  // 成交额
+					    { left: '2%', right: '3%', top: '77%',  bottom: '3%' }    // ★ 新增：成交量
+					],
+					xAxis: [
+			            {
+			                type: 'category',
+			                data: category,
+			                scale: true,
+			                boundaryGap: false,
+			                axisLine: { onZero: false },
+			                splitLine: { show: false },
+			                splitNumber: 20,
+			                min: 'dataMin',
+			                max: 'dataMax',
+			                axisLabel: {
+			                    color: '#fff',
+			                    fontSize: 14,
+			                    show: false
+			                },
+			                axisLine: {
+			                    lineStyle: {
+			                        color: '#444'
+			                    }
+			                },
+							axisPointer: {
+							    label: {
+							      show: false // 隐藏 X 轴浮框
+							    }
+							}
+			            },
+			            {
+			                type: 'category',
+			                gridIndex: 1,
+			                data: category,
+			                scale: true,
+			                boundaryGap: false,
+			                axisLine: { onZero: false },
+			                axisTick: { show: false },
+			                splitLine: { show: false },
+			                axisLabel: {
+			                	color: '#fff',
+			                	fontSize: 16,
+								show:false
+			                },
+			                axisLine: {
+			                    lineStyle: {
+			                        color: '#444'
+			                    }
+			                },
+							axisPointer: {
+							    label: {
+							      show: false // 隐藏 X 轴浮框
+							    }
+							}
+			            },
+						{
+						    type: 'category', gridIndex: 2, data: category, scale: true,
+						    boundaryGap: false, axisLine: { onZero: false },
+						    axisTick: { show: false }, splitLine: { show: false },
+						    axisLabel: { color: '#fff', fontSize: 13 },
+						    axisLine: { lineStyle: { color: '#444' } },
+						    axisPointer: { label: { show: false } }
+						}
+			        ],
+					yAxis: [
+					    {
+					        scale: true,
+							position: 'right',
+							// splitNumber: 14,
+					        splitArea: {
+					            show: true,
+					            areaStyle: {
+					                color: ['rgba(255,255,255,0.02)', 'rgba(0,0,0,0)']
+					            }
+					        },
+					        axisLabel: {
+					            color: '#fff',
+					            fontSize: 16,
+								margin:7
+					            // inside: true
+					        },
+					        splitLine: {
+					            lineStyle: {
+					                color: '#181A20'
+					            }
+					        },
+					        axisLine: {
+					            lineStyle: {
+					                color: '#444'
+					            }
+					        },
+							 axisPointer: {
+								 // show:false,
+								 show: true,          // ⭐ 必须
+								type: 'line', 
+							      label: {
+							        // 设置文字样式
+							        textStyle: {
+							          color: '#ff0',      // 文字颜色
+							          fontSize: 18,   
+										  fontWeight:"bold"// 字体大小
+							        },
+							        // 设置背景颜色和边框
+							        backgroundColor: 'rgba(0,0,0,0.9)', // 背景色
+							        padding: [5, 1],    // 上下为8px，左右为12px
+									// formatter:function(params){
+									// 	return params.value
+									// }
+									formatter:function(params){
+										
+										var price20=params.value*0.8;
+										var first=parseInt((params.value-chart.lastPrice)/chart.lastPrice*1000)/10+"%"
+										var second=+parseInt((chart.lastPrice-params.value)/params.value*1000)/10+"%"
+										// return first+"\n"+second
+										return xNum(params.value,3)+"\n"+xNum(price20,3)+"\n"+first+"\n"+second
+									}
+							    }
+							}
+						},
+					    {
+					        scale: true,
+							position: 'right',
+					        gridIndex: 1,
+					        // splitNumber: 2,
+							splitNumber: 4,
+							splitArea: {
+							    show: true,
+							    areaStyle: {
+							        color: ['rgba(255,255,255,0.02)', 'rgba(0,0,0,0)']
+							    }
+							},
+					        // axisLabel: { show: false },
+							axisLabel: {
+							    color: '#faa700',
+							    fontSize: 16,
+								zIndex:1111,
+								margin:7,
+								 interval:2,
+							    // inside: true,
+								formatter:function(value){
+									return energyback(value)
+								}
+							},
+					        axisLine: { show: false },
+					        axisTick: { show: false },
+					        splitLine: { show: false },
+							 axisPointer: {
+								 show:false,
+							      label: {
+							        // 设置文字样式
+							        textStyle: {
+							          color: '#fff',      // 文字颜色
+							          fontSize: 16,       // 字体大小
+							        },
+							        // 设置背景颜色和边框
+							        backgroundColor: 'rgba(0,0,0,0.5)', // 背景色
+							        padding: [1, 1],    // 上下为8px，左右为12px
+							    },
+							},
+					    },
+						// ★ yAxis[2]: 成交量（张数）
+						{
+						    scale: true, position: 'right', gridIndex: 2,
+						    splitNumber: 3,
+						    splitArea: { show: true, areaStyle: { color: ['rgba(255,255,255,0.02)', 'rgba(0,0,0,0)'] } },
+						    axisLabel: {
+						        color: '#7ecfff', fontSize: 14, zIndex:1111, margin:7, interval:1,
+						        formatter:function(value){ return energyback(value) }
+						    },
+						    axisLine: { show: false }, axisTick: { show: false },
+						    splitLine: { lineStyle: { color: '#1a1a2e' } },
+						    axisPointer: { show:false }
+						}
+					],
+					dataZoom: [
+					    {
+					        type: 'inside',
+							throttle: 50,
+							 // zoomOnMouseWheel: 'ctrl', // 👈 关键
+							 // minSpan: 20,   // 最小显示K线数量（防止放太大）
+							    // maxSpan: 100, // 最大范围（防止缩太小）
+					        xAxisIndex: [0, 1,2],
+					        // startValue: 0,
+					        // endValue: 100,
+							start:globeZoom.start,
+							end:globeZoom.end,
+					        filterMode: 'filter',
+					        zoomLock: false,
+							// zoomRate: 1.01,
+							// zoomOnMouseWheel: false,
+					    }
+					],
+					series: [
+						{
+							type: 'candlestick',
+							barWidth: '80%',
+							data: yData1,
+							itemStyle: {
+							    color: upColor,
+							    color0: downColor,
+							    borderColor: upColor,
+							    borderColor0: downColor,
+							    borderWidth: 1
+							},
+							//标记时间点
+							markPoint: {
+								symbolSize: 60,
+								label: {
+									color: '#fff'
+								},
+								data: [{
+									name: '开仓',
+									// coord: [startTime, 'max'],
+									coord: coord,
+									
+									symbol: 'arrow',
+									symbolSize: 8,
+									// symbolRotate: 180, 
+									itemStyle: { color: '#fff'},
+									// label: { color: '#fff'},
+									label:{
+									    color: '#fff',
+									    position: "bottom",
+									    formatter: function(params) {
+											return ""; // energyback(maxVolumeTurnover.toFixed(2));
+									    }
+									}
+								},{
+									name: '最高价',
+									type: 'max',           // 自动寻找最大值
+									valueDim: 'highest',    // 关键：指定在最高价维度计算
+									symbol: 'arrow',       // 标记图形，可选 'pin'（图钉）等
+									symbolSize: 1,         // 标记大小
+									label: {
+									  show: true,
+									  fontSize: 16,
+									  // 显示数值，保留2位小数
+									  formatter: function(params) {
+										return params.value//.toFixed(2);
+									  },
+									  position: 'top',      // 文字显示在标记点上方
+									  color: '#fff',        // 文字颜色
+									  // backgroundColor: '#ff6b6b' // 文字背景色
+									},
+									itemStyle: {
+									  // color: '#ff6b6b'      // 标记点颜色
+									}
+								  },
+								  ...detectMarkData // ← 新增这一行，把检测出的启动点标记加进来
+								]
+							},
+						},
+						{
+							name: '成交额',
+							type: 'bar',
+							 barWidth: '80%',     // 关键
+							  barGap: '0%',        // ❗不要留缝
+							  barCategoryGap: '0%', // ❗类目之间不留空
+							xAxisIndex: 2,
+							yAxisIndex: 2,
+							data: yData2,
+							markPoint: {
+								data: [
+								  {
+									type: 'max', // 自动识别最大值
+									name: '最高值', // 显示的标签名称
+									symbol: 'arrow',
+									symbolSize: 0.5,
+									label:{
+										color: '#fff',
+										position: 'top',  // 在标记点上方显示
+										formatter:function(params){
+											return "额: "+energyback((params.value).toFixed(2))
+										}
+									}
+								  }
+								]
+							  }
+							// barWidth: '60%',
+							// barCategoryGap: '20%'
+						},
+						{
+						    name: '成交量',
+						    type: 'bar', barWidth: '80%', barGap: '0%', barCategoryGap: '0%',
+						    xAxisIndex: 1, yAxisIndex: 1,
+						    data: yData3,
+						    markPoint: {
+						        data: [{
+						            type: 'max', name: '最高量',
+						            symbol: 'arrow', symbolSize: 0.5,
+						            label:{
+						                color: '#fff', position: 'top',
+						                formatter:function(params){ return "量: "+energyback((params.value).toFixed(2)) }
+						            }
+						        }]
+						    }
+						}
+					]
+				}, {
+					notMerge: true,
+					lazyUpdate: true
+				})
+			
+				if (chart === chart1) {
+				    const onFinished = function() {
+				        chart1.off('finished', onFinished);
+				        updateMarkLines();
+				    };
+				    chart1.on('finished', onFinished);
+				}
+			}
+			
+			
+			
+			//GPT
+			function updateMarkLines() {
+			    if (!chart1) return;
+			
+			    const option = chart1.getOption();
+			
+			    // 👉 拿到当前所有 graphic（包含 watermark）
+			    let oldGraphics = option.graphic || [];
+			
+			    // 👉 找出 watermark（通过 id）
+			    let watermark = oldGraphics.find(g => g.id === 'watermark');
+			
+			    // 👉 如果没有线，清空但保留水印
+			    if (!globeLines || globeLines.length === 0) {
+			        chart1.setOption({
+			            graphic: watermark ? [watermark] : []
+			        }, false);
+			        return;
+			    }
+			
+			    // 👉 计算左右边界
+			    const cat = option.xAxis[0].data;
+			    if (!cat || cat.length === 0) return;
+			
+			    const pLeft  = chart1.convertToPixel({ seriesIndex: 0 }, [0, 0]);
+			    const pRight = chart1.convertToPixel({ seriesIndex: 0 }, [cat.length - 1, 0]);
+			
+			    if (!pLeft || !pRight) return;
+			
+			    const xLeft  = pLeft[0];
+			    const xRight = pRight[0];
+			
+			    // 👉 生成水平线
+			    let lineGraphics = globeLines.map((y, idx) => {
+			        const p = chart1.convertToPixel({ seriesIndex: 0 }, [0, y]);
+			        if (!p) return null;
+			
+			        return {
+			            id: 'hline_' + idx,
+			            type: 'line',
+			            // silent: true, // 🔥 关键：禁止交互
+						silent: false,
+						cursor: 'pointer',
+			            shape: {
+			                x1: xLeft,
+			                y1: p[1],
+			                x2: xRight,
+			                y2: p[1]
+			            },
+			            style: {
+			                stroke: '#ecec00',
+			                lineWidth: 1,
+			                lineDash: [4, 4],
+			                opacity: 0.85
+			            }
+			        };
+			    }).filter(Boolean);
+			
+			    // 👉 合并：水印 + 线
+			    chart1.setOption({
+			        graphic: [
+			            ...(watermark ? [watermark] : []),
+			            ...lineGraphics
+			        ]
+			    }, false);
+			}
+			
+		
+
+			// 请求更多的 K 线数据
+			function loadAdditionalKlines(direction) {
+			    const symbolName = symbolx.name;
+			    let newStartTime, newEndTime;
+			    if (direction === 'previous') {
+			        newStartTime = globeKlineData[0][0] - moreK * intervalTrans;
+			        newEndTime = globeKlineData[0][0];
+			    } else if (direction === 'next') {
+			        newStartTime = globeKlineData[globeKlineData.length-1][0];//+intervalTrans;
+			        newEndTime = newStartTime + moreK * intervalTrans;
+			    }
+			    // 请求新数据
+			    const url = 'https://fapi.binance.com/fapi/v1/klines';
+			    $.get(url, {
+			        symbol: symbolName,
+			        interval: currentInterval,
+			        startTime: newStartTime,
+			        endTime: newEndTime,
+			        limit: 500
+			    }, function(res) {
+					if(res.length==1){
+						tips("no more data")
+						return;
+					}
+					
+					if (direction === 'previous') {
+						 globeKlineData = res.concat(globeKlineData);  // 追加到前面
+					} else if (direction === 'next') {
+						 globeKlineData = globeKlineData.concat(res);  // 追加到后面
+					}
+					
+					let option = chart1.getOption();
+					globeZoom.start=option.dataZoom[0].start;
+					globeZoom.end=option.dataZoom[0].end;
+			        renderChart(globeKlineData, chart1, symbolx);
+					
+					setTimeout(function(){
+						detect()
+					},500)
+					
+					
+					
+					//处理图2
+					if ($('#syncBTC').is(':checked')) {
+					    $.get(url, {
+					        symbol: "BTCUSDT",
+					        interval: currentInterval,
+					        startTime: newStartTime,
+					        endTime: newEndTime,
+					        limit: 500
+					    }, function(res) {
+					        if (direction === 'previous') {
+					            globeKlineData2 = res.concat(globeKlineData2);
+					        } else if (direction === 'next') {
+					            globeKlineData2 = globeKlineData2.concat(res);
+					        }
+					        let option2 = chart2.getOption();
+					        globeZoom.start = option2.dataZoom[0].start;
+					        globeZoom.end   = option2.dataZoom[0].end;
+					        renderChart(globeKlineData2, chart2);
+					    });
+					}
+					
+					
+			    });
+			}
+			
+			function tips(str){
+				$(".tips").html(str).show().delay(1000).fadeOut(200);
+			}
+			
+
+			//转时间戳
+			function toTimestamp(str) {
+				// '2022/5/24 18:04:00'
+				const [date, time] = str.split(' ')
+				const [y, m, d] = date.split('/').map(Number)
+				const [hh, mm, ss] = time.split(':').map(Number)
+			
+				return new Date(y, m - 1, d, hh, mm, ss).getTime()
+			}
+			//将interval转时间戳
+			function intervalToTimestamp(intervalStr) {
+			  // 使用正则表达式匹配数字部分和单位部分
+			  const match = intervalStr.match(/^(\d+)([mhdwM])$/);
+			  
+			
+			  const value = parseInt(match[1], 10); // 提取数字
+			  const unit = match[2]; // 提取单位
+			
+			  // 根据单位返回对应的毫秒数
+			  switch (unit) {
+			    case 'm': // 分钟
+			      return value * 60 * 1000;
+			    case 'h': // 小时
+			      return value * 60 * 60 * 1000;
+			    case 'd': // 天
+			      return value * 24 * 60 * 60 * 1000;
+			    case 'w': // 周
+			      return value * 7 * 24 * 60 * 60 * 1000;
+			    case 'M': // 月 (按30天近似计算)
+			      return value * 30 * 24 * 60 * 60 * 1000;
+			    default:
+			      throw new Error(`不支持的时间单位: "${unit}"`);
+			  }
+			}
+			
+			
+			// 15m尺度：2024/6/20 08:42:00  ==>  2024/6/20 08:30:00
+			function transKlineTime(timeStr, interval) {
+			    // 解析输入时间
+			    const date = new Date(timeStr.replace(/\//g, '-'));
+			    
+			    // 期货市场每日从8点开始
+			    const MARKET_START_HOUR = 8;
+			    
+			    // 提取时间组件
+			    const year = date.getFullYear();
+			    const month = date.getMonth();
+			    const day = date.getDate();
+			    let hour = date.getHours();
+			    let minute = date.getMinutes();
+			    let second = date.getSeconds();
+			    
+			    // 根据interval进行时间对齐
+			    switch(interval) {
+			        case '1m':
+			            // 1分钟线，精确到分钟，秒清零
+			            second = 0;
+			            break;
+			            
+			        case '5m':
+			            // 5分钟线，分钟数向下取整到5的倍数，秒清零
+			            minute = Math.floor(minute / 5) * 5;
+			            second = 0;
+			            break;
+			            
+			        case '15m':
+			            // 15分钟线，分钟数向下取整到15的倍数，秒清零
+			            minute = Math.floor(minute / 15) * 15;
+			            second = 0;
+			            break;
+			            
+			        case '30m':
+			            // 30分钟线，分钟数向下取整到30的倍数，秒清零
+			            minute = Math.floor(minute / 30) * 30;
+			            second = 0;
+			            break;
+			            
+			        case '1h':
+			            // 1小时线，分钟和秒清零
+			            minute = 0;
+			            second = 0;
+			            break;
+						
+					case '2h':
+					    // 2小时线，对齐到偶数小时，以8点为基准
+					    hour = MARKET_START_HOUR + Math.floor((hour - MARKET_START_HOUR) / 2) * 2;
+					    minute = 0;
+					    second = 0;
+					    break;
+			            
+			        case '4h':
+			            // 4小时线，小时数向下取整到4的倍数，分钟和秒清零
+			            hour = MARKET_START_HOUR + Math.floor((hour - MARKET_START_HOUR) / 4) * 4;
+			            minute = 0;
+			            second = 0;
+			            break;
+					
+					case '8h':
+					    // 8小时线，以8点为基准，对齐到 8/16/0 点
+					    hour = MARKET_START_HOUR + Math.floor((hour - MARKET_START_HOUR) / 8) * 8;
+					    minute = 0;
+					    second = 0;
+					    break;
+					
+					case '12h':
+					    // 12小时线，以8点为基准，对齐到 8/20 点
+					    hour = MARKET_START_HOUR + Math.floor((hour - MARKET_START_HOUR) / 12) * 12;
+					    minute = 0;
+					    second = 0;
+					    break;
+			            
+			        case '1d':
+			            // 日线，时间设为8:00:00
+			            hour = MARKET_START_HOUR;
+			            minute = 0;
+			            second = 0;
+			            break;
+			        
+					case '1w':
+					            // 周线 - 对齐到本周的起始日（周一）8:00:00
+					            // 注意：getDay()返回0(周日)~6(周六)
+					            const dayOfWeek = date.getDay(); // 0=周日,1=周一,...,6=周六
+					            
+					            // 计算到本周一的偏移天数
+					            // 如果dayOfWeek=0(周日)，偏移-6天到上周一
+					            // 如果dayOfWeek=1(周一)，偏移0天
+					            // 如果dayOfWeek>=2，偏移1-dayOfWeek天
+					            const daysToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+					            
+					            // 创建周一的时间对象
+					            const monday = new Date(date);
+					            monday.setDate(date.getDate() + daysToMonday);
+					            monday.setHours(MARKET_START_HOUR, 0, 0, 0);
+					            
+					            // 格式化周线时间
+					            const formatNumber = (num) => num.toString().padStart(2, '0');
+					            return `${monday.getFullYear()}/${formatNumber(monday.getMonth() + 1)}/${formatNumber(monday.getDate())} ${formatNumber(monday.getHours())}:${formatNumber(monday.getMinutes())}:${formatNumber(monday.getSeconds())}`;
+					            
+					case '1M':
+						// 月线 - 对齐到当月第一个交易日的8:00:00
+						// 假设每月第一个交易日是1号（可调整）
+						const firstDayOfMonth = new Date(year, month, 1, MARKET_START_HOUR, 0, 0);
+						
+						// 如果需要跳过非交易日（如周末），可以这样处理：
+						// const firstWeekday = firstDayOfMonth.getDay(); // 0=周日,1=周一,...,6=周六
+						// 如果1号是周末，顺延到下一个周一
+						// if (firstWeekday === 0) { // 周日
+						//     firstDayOfMonth.setDate(2); // 顺延到2号（周一）
+						// } else if (firstWeekday === 6) { // 周六
+						//     firstDayOfMonth.setDate(3); // 顺延到3号（下周一）
+						// }
+						
+						// 格式化月线时间
+						const formatNumber2 = (num) => num.toString().padStart(2, '0');
+						return `${firstDayOfMonth.getFullYear()}/${formatNumber2(firstDayOfMonth.getMonth() + 1)}/${formatNumber2(firstDayOfMonth.getDate())} ${formatNumber2(firstDayOfMonth.getHours())}:${formatNumber2(firstDayOfMonth.getMinutes())}:${formatNumber2(firstDayOfMonth.getSeconds())}`;
+					          
+			        default:
+			            throw new Error(`不支持的K线周期: ${interval}`);
+			    }
+			    
+			    // 创建对齐后的时间对象
+			    const alignedDate = new Date(year, month, day, hour, minute, second);
+			    
+			    // 格式化输出
+			    const formatNumber = (num) => num.toString().padStart(2, '0');
+				// const formatNumber =(num)=>num;
+			    
+			    return `${alignedDate.getFullYear()}/${formatNumber(alignedDate.getMonth() + 1)}/${formatNumber(alignedDate.getDate())} ${formatNumber(alignedDate.getHours())}:${formatNumber(alignedDate.getMinutes())}:${formatNumber(alignedDate.getSeconds())}`;
+			}
+			
+			
+			
+			function formatTransactionTimes(arr) {
+			    // 检查输入是否有效
+			    if (!Array.isArray(arr)) {
+			        throw new Error('输入必须是一个数组');
+			    }
+			
+			    // 使用 map 方法创建新数组，不改变原数组
+			    return arr.map(transaction => {
+			        // 创建新对象，避免修改原数据
+			        const formattedTransaction = { ...transaction };
+			        
+			        // 处理开始时间
+			        if (formattedTransaction.start) {
+			            formattedTransaction.start = add0(formattedTransaction.start);
+			        }
+			        
+			        // 处理结束时间
+			        if (formattedTransaction.end) {
+			            formattedTransaction.end = add0(formattedTransaction.end);
+			        }
+			        
+			        return formattedTransaction;
+			    });
+			}
+			
+			function add0(timeStr) {
+			    // 解析时间字符串
+			    const date = new Date(timeStr.replace(/\//g, '-'));
+			    
+			    // 检查日期是否有效
+			    if (isNaN(date.getTime())) {
+			        console.warn(`无效的时间格式: ${timeStr}`);
+			        return timeStr; // 返回原字符串
+			    }
+			    
+			    // 提取时间组件并补零
+			    const year = date.getFullYear();
+			    const month = (date.getMonth() + 1).toString().padStart(2, '0'); // 月份补零
+			    const day = date.getDate().toString().padStart(2, '0'); // 日期补零
+			    const hours = date.getHours().toString().padStart(2, '0'); // 小时补零
+			    const minutes = date.getMinutes().toString().padStart(2, '0'); // 分钟补零
+			    const seconds = date.getSeconds().toString().padStart(2, '0'); // 秒钟补零
+			    
+			    // 返回格式化后的字符串
+			    return `${year}/${month}/${day} ${hours}:${minutes}:${seconds}`;
+			}
+			
+			function energybackold(num){
+				var aaa=num;
+				if (typeof value !== 'number') {
+				        aaa=Number(aaa);
+				    }
+				
+				if(num/1000000000>=1){
+					return (num/1000000000).toFixed(1)+"B";
+				}else if(num/1000000>=1){
+					return (num/1000000).toFixed(1)+"M";
+				}else if(num/1000>=1){
+					return parseInt(num/1000)+"K"
+				}else{
+					return num
+				}
+			}
+			function energyback(num){
+				var aaa=num;
+				if (typeof value !== 'number') {
+				        aaa=Number(aaa);
+				    }
+				
+				if(num/1000000000>=1){
+					return parseInt(num/100000000)/10+"B";
+				}else if(num/1000000>=1){
+					return parseInt(num/1000000)+"M";
+				}else if(num/1000>=1){
+					return parseInt(num/1000)+"K"
+				}else{
+					return num
+				}
+			}
+			//保留3位非0数字
+			function xNum(numStr) {
+			    
+			    // 尝试将字符串转换为数字
+			    const number = parseFloat(numStr);
+			    
+			    // 检查转换结果是否为有效数字
+			    if (isNaN(number)) {
+			       return;
+			    }
+			    // 判断是否为整数
+			    if (Number.isInteger(number)) {
+			        return number//.toString();
+			    }
+			    
+			    // 对于小数，保留三位有效数字
+			    // 使用toPrecision方法指定有效数字位数[6,7](@ref)
+			    let result = number.toPrecision(3);
+			    
+			    // 移除可能存在的末尾小数点（例如将"123."转换为"123"）
+			    if (result.endsWith('.')) {
+			        result = result.slice(0, -1);
+			    }
+			    return result;
+			}
+			
+			function fillArr(rawData,minNum){
+				var len=rawData.length;
+				
+				if(len<minNum){
+					if(len>1){
+						var addtime=rawData[len-1][0]-rawData[len-2][0];
+					}else{
+						// var addtime=transtime($("#timeframe").val());
+						return rawData;
+					}
+					var lastKtime=rawData[len-1][0];
+					var neednum=minNum-len;
+					for (var i = 1; i < neednum; i++) {
+						rawData.push([lastKtime+addtime*i])
+					}
+				}
+				// console.log(rawData)
+				return rawData;
+			}
+			
+			function randomID(){
+				return Math.floor(Math.random() * 90000000000) + 10000000000;
+			}
+			
+			//无论涨跌：输出k线上影线+实体+下影线三部分比例
+			function lineObj(k){
+				let part;
+				let direction;
+				if(k.close>k.open){
+					direction="up";
+					part={
+						up:k.high-k.close,
+						middle:k.close-k.open,
+						down:k.open-k.low,
+						all:k.high-k.low
+					}
+				}else{
+					direction="down"
+					part={
+						up:k.high-k.open,
+						middle:k.open-k.close,
+						down:k.close-k.low,
+						all:k.high-k.low
+					}
+				}
+				return {
+					direction:direction,
+					part:part,
+					middle_all:(part.middle/part.all).toFixed(2),
+					down_up:(part.down/part.up).toFixed(2),
+					down_all:(part.down/part.all).toFixed(2),
+					up_all:(part.up/part.all).toFixed(2)
+				}
+			}
+			
+			function saveCurrentZoom() {
+			    try {
+			        const option = chart1.getOption();
+			        if (option && option.dataZoom && option.dataZoom[0]) {
+			            globeZoom.start = option.dataZoom[0].start;
+			            globeZoom.end   = option.dataZoom[0].end;
+			        }
+			    } catch(e) {}
+			}
+			
+			//======================== local============================================== 
+			//======================== local============================================== 
+			
+			
+			function getLocal(name){
+				return JSON.parse(localStorage.getItem(name))
+			}
+			
+			function setLocal(name,data){
+				localStorage.setItem(name,JSON.stringify(data))
+			}
+			
+			//获取本地key数据中的key=val成员
+			function getLocalItem(key,val){
+				var local=JSON.parse(localStorage.getItem(dataX));
+				if(local.length){
+					var a=local.find(member=>member[key]==val);
+					if(a){
+						return a
+					}else{
+						return ""
+					}
+				}else{
+					return ""
+				}
+			}
+				
+			function changeLocal(symbolName,key,val){
+				// var localData=getLocal(dataX);
+				for (var i = 0; i < trades.length; i++) {
+					if(trades[i].name==symbolName){
+						trades[i].time=val;
+					}
+				}
+				setLocal(dataX,trades);
+				// var member=localData.find(member => member.name == symbolName);
+				// if (!member.hasOwnProperty(key)) {
+				//   member[key] = val;
+				// }
+				// member[key]=val;
+				
+				// setLocal(dataX,localData)
+				// console.log(localStorage.getItem(dataX))
+			}
+			//======================== local============================================== 
+			//======================== local============================================== 
+			
+			//=======================算法检测===========================
+			
+	
+			function detect(){
+				// 重新渲染图表显示标记
+				setTimeout(function(){
+					
+					globeDetectPoints = []; // 清空旧标记
+					signal_result=[]; //清空旧信号
+					
+					if(currentInterval=="1m"){
+						x_rocket_1m(symbolx.name, currentInterval, detectData);
+					}
+					
+					if(currentInterval=="1m" || currentInterval=="5m"){
+						// x_start_mm(symbolx.name, currentInterval, detectData);
+					}else{
+						x_start0(symbolx.name,currentInterval,detectData,detectData.length-100)
+					}
+					
+					
+					
+					// console.log(signal_result)
+					renderChart(globeKlineData, chart1, symbolx);
+				},1000)
+				
+				
+			}
+			
+			//检测所有出现过的情况
+			function x_start0(symbol, item, arr, num) {
+				let testTime=0;
+				if($("#testK").length>0){
+					testTime==strToStamp($("#testK").val());
+				}
+				
+			    // const results=[];
+			    
+			    let pre = 10;
+			    let per = 0.01;
+			    let vol2 = 1000000;
+				if (item == "1m") { pre = 10; per = 0.005; vol2 = 10000; }
+				if (item == "5m") { pre = 10; per = 0.005; vol2 = 10000; }
+				if (item == "15m") { pre = 10; per = 0.005; vol2 = 10000; }
+				else if (item == "30m") { pre = 10; per = 0.01; vol2 = 500000; }
+				else if (item == "1h") { pre = 20; per = 0.02; vol2 = 500000; }
+				else if (item == "2h") { pre = 20; per = 0.02; vol2 = 1000000; }
+				else if (item == "4h") { pre = 10; per = 0.02; vol2 = 2000000; }
+				else if (item == "8h") { pre = 10; per = 0.02; vol2 = 2000000; }
+				else if (item == "12h") { pre = 5; per = 0.02; vol2 = 2000000; }
+				else if (item == "1d") { pre = 5; per = 0.02; vol2 = 2000000; }
+				else{ pre = 10; per = 0.01; vol2 = 500000; }
+				
+			// 第一版设置
+			 //    if (item == "1m") { pre = 10; per = 0.005; vol2 = 10000; }
+			 //    if (item == "5m") { pre = 10; per = 0.005; vol2 = 10000; }
+			 //    if (item == "15m") { pre = 10; per = 0.005; vol2 = 10000; }
+			 //    else if (item == "30m") { pre = 10; per = 0.01; vol2 = 500000; }
+			 //    else if (item == "1h") { pre = 10; per = 0.02; vol2 = 500000; }
+			 //    else if (item == "2h") { pre = 10; per = 0.02; vol2 = 1000000; }
+			 //    else if (item == "4h") { pre = 5; per = 0.02; vol2 = 2000000; }
+			 //    else if (item == "8h") { pre = 5; per = 0.02; vol2 = 2000000; }
+				// else if (item == "12h") { pre = 5; per = 0.02; vol2 = 2000000; }
+				// else if (item == "1d") { pre = 5; per = 0.02; vol2 = 2000000; }
+				// else{ pre = 10; per = 0.01; vol2 = 500000; }
+			    
+			    // num 只是 A 的候选区间，不包含 pre
+			    const klines = arr.slice(-(num + pre + 2));
+			    
+			    // 至少需要：pre(前) + num(候选A) + 2(后)
+			    if (klines.length < pre + num + 2) {
+			    	console.log("数量不足"+(num + pre + 2)+"："+symbol + " " + item + " " + klines.length)
+			    	return false;
+			    }
+			    
+			    
+			    // A 的合法起始索引：从 pre 开始，到倒数第 2 根结束
+			    for (let i = pre; i < pre + num; i++) {
+					let testTarget=false;
+					let enhance="";
+			        const A = klines[i];
+					
+					//定点测试 可忽略
+					if(A.timestamp== testTime){
+						testTarget=true;
+					}
+			    			
+			        // A必须是阳线（上涨K线）======================
+			        if (A.close <= A.open) continue;
+			    			
+			        // A 的成交额必须大于等于 vol2 =========================
+			        // if (A.quoteVolume < vol2) continue;
+			    			
+			        // A 的涨幅必须大于 per=======================
+			        const aChange = (A.close - A.open) / A.open;
+			        if (aChange <= per) continue;
+			    			
+			        const preKlines = klines.slice(i - pre, i);
+			    			
+			        //信号增强： A的收盘价大于前面任意一根的最高价================================
+			        const preHighMax = Math.max(...preKlines.map(k => k.close));
+			        if (A.close >= preHighMax){
+						enhance="+";
+					}
+					
+					// 5m/15m的前提下  A的最高价大于前面任意一根的最高价================================
+					// if(item=="5m" || item=="15m"){
+					// 	const preHighMax = Math.max(...preKlines.map(k => k.high));
+					// 	if (A.high <= preHighMax) continue;
+					// }
+					
+					
+			        // 前面 pre 根中没有阳线，则自动通过此条件==============================
+			        let riseFlag = false;
+			        let hasUpKline = false;
+			        for (const prev of preKlines) {
+			            if (prev.close > prev.open) {
+			                hasUpKline = true;
+			                const prevChange = (prev.close - prev.open) / prev.open;
+			                if (aChange > prevChange) {
+			                    riseFlag = true;
+			                    break;
+			                }
+			            }
+			        }
+			        if (hasUpKline && !riseFlag) continue;
+			    			
+			    
+			    	//A 之后的两根K线=================================================
+			        const aRange = A.high - A.low;
+			        const next1 = klines[i + 1];
+			        const next2 = klines[i + 2];
+					
+					// 【新增条件1】A之后的两根K线，最低价不小于A的开盘价
+					if (next1.low < A.open) continue;
+					if (next2.low < A.open) continue;
+			    			
+			        const n1Change = (next1.close - next1.open) / next1.open;
+			        const n2Change = (next2.close - next2.open) / next2.open;
+			    			
+			        // 判断两根K线的方向
+			        const n1IsUp = n1Change > 0;
+			        const n2IsUp = n2Change > 0;
+			        
+			        if (n1IsUp !== n2IsUp) {
+			            // 一涨一跌：每根绝对值分别小于 A涨幅的 1/4
+			            if (Math.abs(n1Change) >= aChange / 4) continue;
+			            if (Math.abs(n2Change) >= aChange / 4) continue;
+			        } else {
+			            // 两连涨或两连跌：累计涨跌幅绝对值小于 A涨幅的 1/4
+			            const totalChange = Math.abs(n1Change + n2Change);
+			            if (totalChange >= aChange / 4) continue;
+			        }
+			    			
+			        //A 之后的两根K线，每根的高低点范围必须小于 A 范围的 1.2 倍=======================
+			        const n1Range = next1.high - next1.low;
+			        const n2Range = next2.high - next2.low;
+			        if (n1Range >= aRange * 1.2) continue;
+			        if (n2Range >= aRange * 1.2) continue;
+					
+			        // ★ 符合条件的，记录到结果集 ★
+			        signal_result.push({
+			            time: A.time,
+			            open: A.open,
+			            close: A.close,
+			            high: A.high,
+			            low: A.low,
+			            change: (aChange * 100).toFixed(2) + '%',
+			            quoteVolume: A.quoteVolume,
+						signal:"bs"+enhance
+			        });
+			    }
+				report(signal_result)
+			    
+			}
+			
+			function x_start_mm(symbol, item, arr,num) { //console.log("000000000") 
+			
+				// alert()
+				const testMode=true;
+				let testTime=0;
+				if($("#testK").length>0){
+					testTime=new Date($("#testK").val()).getTime();
+				}
+				const testText=symbol+" "+testTime+" ";
+				
+				// 周期自适应参数
+				let pre = 50;
+				if (item === "5m") pre = 25;
+				else if (item === "15m") pre = 10;
+				
+				// num 为A检测范围，不传入则从arr首位+pre开始检测
+				if (num === undefined) {
+					// 没有传入 num 参数
+					num = arr.length - pre;
+				}
+				if (!arr || arr.length < pre + num) {
+					console.log("x_start_mm数据不足"+symbol+" "+item)
+				    return false;
+				}
+				
+				//A之后两根涨幅上限
+				const per = 0.01; 
+				//A成交量相比pre的倍数
+				const Rvol = 8;
+				//A涨幅相比after的倍数
+				const Rper=4;
+				
+			    // 只检查最后 num 个成员作为候选 A
+				for (let i = arr.length - num; i < arr.length; i++) {
+					//增加检测信号
+					let plus="";
+					let testTarget=false;
+					
+					
+					const A = arr[i];
+					
+					//定点测试 可忽略
+					if(A.timestamp== testTime){
+						testTarget=true;
+					}
+						
+					// 条件1：A必须是上涨的 成交额大于10K 涨幅大于0.5% ,上影线不超过整体的0.4倍
+					const volA = A.volume;
+					const perA = (A.close - A.open) / A.open;
+					
+					if (A.close <= A.open || A.quoteVolume <10000 || perA<0.008 || lineObj(A).up_all>=0.4) continue;
+					
+					// // 信号增强：判断 A的收盘价大于pre中所有K线的最高价，如果成立 则添加信号+
+					let maxHighInPre = -Infinity;
+					for (let k = i - pre; k < i; k++) {
+					    if (k < 0) continue;
+					    if (arr[k].high > maxHighInPre) {
+					        maxHighInPre = arr[k].high;
+					    }
+					}
+					if (A.close >= maxHighInPre){
+						plus+="+";
+					}
+					
+					// 信号增强：判断A的涨幅比前面pre根中所有上涨K线的涨幅都大，如果成立 则添加信号+
+					let isMaxGain = true;
+					for (let k = i - pre; k < i; k++) {
+						if (k < 0) continue;
+						const prevK = arr[k];
+						// 只考虑上涨K线
+						if (prevK.close > prevK.open) {
+							const prevPer = (prevK.close - prevK.open) / prevK.open;
+							if (perA <= prevPer) {
+								isMaxGain = false;
+								break;
+							}
+						}
+					}
+					if (isMaxGain) {
+						plus+="+";
+					}
+			
+					// 条件2：成交量倍数逻辑
+					let foundM = false;
+					let mIndex = -1;
+			
+					// 从A的前一根开始往前找，找到第一个成交量满足 valA >= 其成交量 * Rvol 的K线作为M
+					for (let j = i - 1; j >= i - pre; j--) {
+						if (j < 0) break;
+						if (volA >= arr[j].volume * Rvol) {
+							foundM = true;
+							mIndex = j;
+							break;
+						}
+					}
+			
+					if (!foundM){
+						if(testMode && testTarget){
+							$(".tips").html(testText+"=========>> 从A的前一根开始往前找，找到第一个成交量满足 valA >= 其成交量 * Rvol 的K线作为M")
+						}
+						continue;
+					}
+				
+					
+					// 新增条件：从M+1 到A（包括A）的所有K线都必须是上涨K线, 并且成交量不大于A的两倍
+					let allUp = true;
+					for (let k = mIndex+1; k <= i; k++) {
+						if (arr[k].close <= arr[k].open || arr[k].volume / volA >=2) {
+							allUp = false;
+							break;
+						}
+					}
+					
+					if (!allUp) {
+						if(testMode && testTarget){
+							$(".tips").html(testText+"=========>> 从M+1 到A（包括A）的所有K线都必须是上涨K线, 并且成交量不大于A的两倍")
+						}
+						continue;
+					}
+			
+					// 计算从前面pre根到M之间（不包括M）的所有K线成交量的平均值
+					let sumVol = 0;
+					let count = 0;
+					for (let k = i - pre; k <= mIndex; k++) {
+						if (k < 0) continue;
+						sumVol += arr[k].volume;
+						count++;
+					}
+			
+					// 如果前面pre根全在M之后（理论上不会发生，但防御性处理）
+					if (count === 0) continue;
+			
+					const avgVol = sumVol / count;
+			
+					// A的成交量必须大于前面pre到M之间每一根的成交量
+					let allGreater = true;
+					for (let k = i - pre; k < mIndex; k++) {
+						if (k < 0) continue;
+						if (volA <= arr[k].volume) {
+							allGreater = false;
+							break;
+						}
+					}
+					if (!allGreater){
+						if(testMode && testTarget){
+							$(".tips").html(testText+"=========>> A的成交量必须大于前面pre到M之间每一根的成交量")
+						}
+						continue;
+					}
+			
+					// A的成交量必须是这些K线平均值的Rvol倍以上
+					if (volA <= avgVol * Rvol){
+						if(testMode && testTarget){
+							$(".tips").html(testText+"=========>> A的成交量必须是这些K线平均值的Rvol倍以上")
+						}
+						continue;
+					}
+			
+					// 条件3：A之后的两根K线
+					if (i + 2 >= arr.length) continue;
+					const next1 = arr[i + 1];
+					const next2 = arr[i + 2];
+					
+					
+					const n1Change = (next1.close - next1.open) / next1.open;
+					const n2Change = (next2.close - next2.open) / next2.open;
+					
+					// perA必须大于后两根分别的涨幅的Rper倍
+					if (perA <= Math.abs(n1Change) * Rper) continue;
+					if (perA <= Math.abs(n2Change) * Rper) continue;
+					
+					// 后两根的涨幅分别小于per
+					if (Math.abs(n1Change) >= per) continue;
+					if (Math.abs(n2Change) >= per) continue;
+					
+					// 如果后两根同为上涨或同为下跌
+					if ((n1Change > 0 && n2Change > 0) || (n1Change < 0 && n2Change < 0)) {
+						const perAfter = Math.abs((next1.open - next2.close) / next2.close);
+						// perA至少是perAfter的Rper倍, perAfter小于per
+						if (perA <= perAfter * Rper || perAfter >= per) continue;
+					}
+					
+					
+					// 新增条件：A后两根K线振幅都小于A振幅的0.7
+					const waveA = (A.high - A.low) / A.low;
+					const n1wave = (next1.high - next1.low) / next1.low;
+					const n2wave = (next2.high - next2.low) / next2.low;
+					if (n1wave >= waveA * 0.7 || n2wave >= waveA * 0.7) continue;
+			
+					// ★ 符合条件的，记录到结果集 ★
+				   signal_result.push({
+					   time: A.time,
+					   open: A.open,
+					   close: A.close,
+					   high: A.high,
+					   low: A.low,
+					   change: (perA * 100).toFixed(2) + '%',
+					   quoteVolume: A.quoteVolume,
+					   signal:"s"+plus
+				   });
+				}
+				report(signal_result)
+			}
+		
+			function x_rocket_1m(symbol, item, arr) {
+			    // let pre;
+			    // switch(item) {
+			    //     case '1m': pre = 100; break;
+			    //     // case '5m': pre = 200; vol=100000; break;
+			    //     // case '15m': pre = 30; break;  // 注意：你写的 pre=10，但实际应该是 30？按你给的逻辑 "15m" pre=10
+			    //     default: pre = 20;
+			    // }
+			
+			   
+				
+				const pre=100;
+			    const per = 0.005;     // 0.5%
+			    const vol = 25000;     // 成交额阈值
+			    const Rvol = 8;        // 成交量倍数阈值
+			    const Rper = 10;       // 涨幅倍数阈值
+				
+				// 2. 计算需要检测的范围
+				const num = arr.length - pre;
+				if (num < 0) {
+				    console.log("x_rocket_mm数据不足 " + symbol + " " + item);
+				    return false;
+				}
+			
+			    // 3. 遍历最后 num 个成员作为候选启动K线
+			    for (let i = arr.length - num; i < arr.length; i++) {
+			        const A = arr[i];
+			        if(A.timestamp== new Date("2026/08/11 12:36:00").getTime()){
+			        	console.log("1111111111111111111");
+						console.log(A)
+			        }
+			        // 检查索引范围是否足够取前 pre 根和后 5 根
+			        if (i - pre < 0 || i + 5 >= arr.length) continue;
+			
+			        // --- 条件1：A是上涨的，涨幅 >= per，成交额 >= vol ---
+			        const perA = (A.close - A.open) / A.open;
+			        const volA = A.quoteVolume;  // 成交额
+			        
+			        if (perA <= 0 || perA < per || volA < vol) continue;
+			
+			        // --- 条件2：perA 大于前面 pre 根的每一根涨幅 ---
+			        let condition2 = true;
+			        for (let j = i - pre; j < i; j++) {
+			            const prevPer = (arr[j].close - arr[j].open) / arr[j].open;
+			            if (perA <= prevPer) {
+			                condition2 = false;
+			                break;
+			            }
+			        }
+			        if (!condition2) continue;
+			
+			        // --- 条件3（修改后）：---
+					// volA 大于前面 pre 根中每一根上涨K线的成交额的5倍以上
+					// 且 volA / 前面 pre 根（不分涨跌）的平均成交额 >= 10
+					let condition3 = true;
+					let totalPrevVol = 0;           // 所有前序K线总成交额（不分涨跌）
+					let upKlineCount = 0;           // 上涨K线数量计数
+					
+					for (let j = i - pre; j < i; j++) {
+						const prevCandle = arr[j];
+						const prevVol = prevCandle.quoteVolume;
+						const prevPer = (prevCandle.close - prevCandle.open) / prevCandle.open;
+						
+						totalPrevVol += prevVol;    // 累加所有K线成交额
+						
+						// 如果是上涨K线，检查 volA 是否大于它的5倍
+						if (prevPer > 0) {
+							upKlineCount++;
+							if (volA <= prevVol * 5) {
+								condition3 = false;
+								break;
+							}
+						}
+					}
+					
+					if (!condition3) continue;
+					
+					// 如果没有上涨K线，跳过（无法满足"大于每根上涨K线5倍"的条件）
+					if (upKlineCount === 0) continue;
+			
+			        // 计算前 pre 根平均成交额
+			        const avgPrevVol = totalPrevVol / pre;
+			        const Ravevol = volA / avgPrevVol;
+			        
+			        if (Ravevol < Rvol) continue;  // 平均倍数 >= 10
+			
+			        // --- 条件4：A后面5根的最低价不低于 A 实体的一半 ---
+			        const halfBody = (A.close - A.open) / 2 + A.open;
+			        let condition4 = true;
+			        for (let j = i + 1; j <= i + 5 && j < arr.length; j++) {
+			            if (arr[j].low < halfBody) {
+			                condition4 = false;
+			                break;
+			            }
+			        }
+			        if (!condition4) continue;
+			
+			        // ★ 符合条件的，记录到结果集 ★
+				   signal_result.push({
+					   time: A.time,
+					   open: A.open,
+					   close: A.close,
+					   high: A.high,
+					   low: A.low,
+					   change: (perA * 100).toFixed(2) + '%',
+					   quoteVolume: A.quoteVolume,
+					   signal:"r"
+				   });
+				}
+				report(signal_result)
+			}
+			
+			function report(results){
+				// ★ 统一输出所有结果 ★
+				if (results.length > 0) {
+				    // console.log('找到 ' + results.length + ' 个启动点:');
+				    
+				    // 控制台详细输出
+				    results.forEach((r, idx) => {
+						globeDetectPoints.push({
+							time:r.time,
+							signal:r.signal
+						});
+				        // console.log( r.time );
+				    });
+							
+					$("#btn-detect").html("detect:"+results.length)
+							
+				    return true;
+				} else {
+				   $("#btn-detect").html("detect:"+0)
+				    return false;
+				}
+			}
+			
+			//统计每个小时出现的次数
+			function countHours(arr) {
+			  // 1. 统计每个小时的出现次数
+			  const hourCount = {};
+			  
+			  for (const item of arr) {
+			    const timeStr = item.time;
+			    const hour = timeStr.split(':')[0].split(' ')[1]; // 提取小时字符串
+			    const hourNum = parseInt(hour, 10);
+			    
+			    if (isNaN(hourNum)) continue;
+			    
+			    hourCount[hourNum] = (hourCount[hourNum] || 0) + 1;
+			  }
+			  
+			  // 2. 转换为数组并按次数排序（从多到少）
+			  const sortedResult = Object.entries(hourCount)
+			    .sort((a, b) => b[1] - a[1])  // 按次数降序排序
+			    .map(([hour, count]) => ({
+			      count: count,
+			      hour: parseInt(hour)
+			    }));
+			  
+			  // 3. 输出格式化结果
+			  sortedResult.forEach(item => {
+			    console.log(`次数：${item.count}，时刻：${item.hour}点`);
+			  });
+			  
+			  return sortedResult;
+			}
+			
+			
+			//生成时刻分布统计图
+			function calander(rawData){
+				const hourCounts = {};
+				for (let hour = 0; hour < 24; hour++) {
+				  hourCounts[hour] = 0;
+				}
+				
+				rawData.forEach(item => {
+				  const timeStr = item.time;
+				  // 提取小时部分，例如从 '2024/11/10 08:00:00' 提取 '08'
+				  const hourMatch = timeStr.match(/(\d{2}):/);
+				  if (hourMatch) {
+				    const hour = parseInt(hourMatch[1], 10);
+				    if (!isNaN(hour) && hour >= 0 && hour < 24) {
+				      hourCounts[hour]++;
+				    }
+				  }
+				});
+				
+				// 2. 转换为 ECharts 需要的格式 [小时, 次数]
+				const chartData = [];
+				for (let hour = 0; hour < 24; hour++) {
+				  chartData.push([hour, hourCounts[hour]]);
+				}
+				
+				// 3. ECharts 配置项
+				const option = {
+				  backgroundColor: '#0b0f1a', // 暗色背景，可保持你原来的黑感
+				
+				  title: {
+				    text: '24小时信号分布',
+				    left: 'center',
+				    top: 10,
+				    textStyle: {
+				      color: '#e6f1ff',
+				      fontSize: 18,
+				      fontWeight: 600,
+				      letterSpacing: 1
+				    }
+				  },
+				
+				  tooltip: {
+				    trigger: 'axis',
+				    axisPointer: {
+				      type: 'shadow'
+				    },
+				    backgroundColor: 'rgba(20, 28, 45, 0.92)',
+				    borderColor: 'rgba(90, 130, 255, 0.55)',
+				    borderWidth: 1,
+				    textStyle: {
+				      color: '#e6f1ff'
+				    },
+				    formatter: function (params) {
+				      const dataPoint = params[0].data;
+				      const hour = dataPoint[0];
+				      const count = dataPoint[1];
+				      return `
+				        <div style="font-weight:600;margin-bottom:4px;">
+				          ${hour}:00
+				        </div>
+				        <div>信号次数：<span style="color:#6f9bff;font-weight:700;">${count}</span> 次</div>
+				      `;
+				    }
+				  },
+				
+				  grid: {
+				    left: '3%',
+				    right: '4%',
+				    bottom: '25%',
+				    top: '15%',
+				    containLabel: true,
+				    show: true,
+				    borderColor: 'rgba(255,255,255,0.08)',
+				    backgroundColor: 'rgba(255,255,255,0.02)'
+				  },
+				
+				  xAxis: {
+				    type: 'category',
+				    data: Array.from({ length: 24 }, (_, i) => `${i}:00`),
+				    name: '时刻',
+				    nameTextStyle: {
+				      color: '#9fb3c8',
+				      padding: [0, 0, 0, 10]
+				    },
+				    axisLine: {
+				      lineStyle: {
+				        color: 'rgba(255,255,255,0.25)'
+				      }
+				    },
+				    axisTick: {
+				      show: false
+				    },
+				    axisLabel: {
+				      interval: 0,
+				      color: '#b8c7d6',
+				      fontSize: 11
+				    },
+				    splitLine: {
+				      show: false
+				    }
+				  },
+				
+				  yAxis: {
+				    type: 'value',
+				    name: '次数',
+				    nameTextStyle: {
+				      color: '#9fb3c8',
+				      padding: [0, 0, 0, -30]
+				    },
+				    axisLine: {
+				      show: false
+				    },
+				    axisTick: {
+				      show: false
+				    },
+				    axisLabel: {
+				      color: '#b8c7d6'
+				    },
+				    splitLine: {
+				      lineStyle: {
+				        color: 'rgba(255,255,255,0.08)'
+				      }
+				    }
+				  },
+				
+				  series: [
+				    {
+				      name: '次数',
+				      type: 'bar',
+				      data: chartData,
+				      barWidth: '55%',
+				      borderRadius: [6, 6, 0, 0],
+				      itemStyle: {
+				        // color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+				        //   { offset: 0, color: '#6f9bff' },
+				        //   { offset: 1, color: '#2b3f7a' }
+				        // ]),
+						color:"#ff0",
+				        borderColor: 'rgba(150, 180, 255, 0.25)',
+				        borderWidth: 0.5
+				      },
+				      emphasis: {
+				        itemStyle: {
+				          // color: new echarts.graphic.LinearGradient(0, 0, 0, 1, [
+				          //   { offset: 0, color: '#9ec0ff' },
+				          //   { offset: 1, color: '#3d5fc7' }
+				          // ])
+						  color:"#ff0"
+				        }
+				      },
+					  label: {
+					        show: true,
+					        position: 'top',
+					        color: '#ffffff',
+					        fontSize: 16,
+					        formatter: function(params) {
+					          // 如果 chartData 是 [[小时, 次数], ...] 格式
+					          return params.data[1];
+					        }
+					      },
+				    }
+				  ]
+				};
+				
+				// 4. 初始化图表（假设你有一个 id 为 'chart' 的 div）
+				const chartDom = document.getElementById('chart2');
+				if (chartDom) {
+				  const myChart = echarts.init(chartDom);
+				  myChart.setOption(option);
+				
+				  // 响应式调整
+				  window.addEventListener('resize', () => {
+				    myChart.resize();
+				  });
+				}
+			}
+			
+			//"20260715 1250"格式的yyyyMMdd hhmm 时间字符串转成时间戳
+			function strToStamp(timeStr) {
+			    let year = parseInt(timeStr.substring(0, 4));
+			    let month = parseInt(timeStr.substring(4, 6)) - 1; // 月份从0开始
+			    let day = parseInt(timeStr.substring(6, 8));
+			    let hour = parseInt(timeStr.substring(9, 11));
+			    let minute = parseInt(timeStr.substring(11, 13));
+			    
+			    return new Date(year, month, day, hour, minute).getTime();
+			}
+			
+			function mmddhhmm(timestamp) {
+			    const now = new Date(timestamp);
+			
+			    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+			    const date = now.getDate().toString().padStart(2, '0');
+			    const hour = now.getHours().toString().padStart(2, '0');
+				const minutes = now.getMinutes().toString().padStart(2, '0')
+			    return `${month}${date}-${hour}${minutes}`;
+			}
+		</script>
+
+	</body>
+</html>

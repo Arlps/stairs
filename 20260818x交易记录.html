@@ -1,0 +1,497 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>交易记录</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+	<link rel="stylesheet" href="show.css" />
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0d1117;
+            color: #fff;
+            font-family: Arial, sans-serif;
+            height: 100vh;
+            overflow: hidden;
+        }
+		.chart-container {
+		    margin-top: 10px;
+		}
+        .box-wrap {
+            display: flex;
+            height: 100vh;
+        }
+        .left {
+            width: 33%;
+            min-width: 380px;
+            border-right: 1px solid #30363d;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .right {
+            flex: 1;
+            background: #0d1117;
+        }
+
+        /* A部分：输入区 */
+        .input-area {
+            padding: 8px 10px;
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            flex-shrink: 0;
+        }
+        .input-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+        .input-row input {
+            background: #21262d;
+            border: 1px solid #30363d;
+            color: #FF0;
+            padding: 4px 8px;
+            font-size: 14px;
+            outline: none;
+            flex: 1;
+            min-width: 70px;
+            height: 28px;
+        }
+        .input-row input:focus {
+            border-color: #58a6ff;
+        }
+        .input-row button {
+            background: #238636;
+            color: #fff;
+            border: none;
+            padding: 4px 14px;
+            font-size: 14px;
+            cursor: pointer;
+            height: 28px;
+            line-height: 20px;
+            white-space: nowrap;
+            font-weight: bold;
+        }
+        .input-row button:hover {
+            background: #2ea043;
+        }
+
+        /* B部分：表格区 */
+        .table-wrapper {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 0;
+        }
+        .table-wrapper::-webkit-scrollbar {
+            width: 4px;
+            background: transparent;
+        }
+        .table-wrapper::-webkit-scrollbar-thumb {
+            background: rgba(128, 128, 128, 0.4);
+            border-radius: 2px;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+            table-layout: fixed;
+        }
+        thead {
+            position: sticky;
+            top: 0;
+            z-index: 2;
+        }
+        th {
+            background: #161b22;
+            border-bottom: 1px solid #30363d;
+            padding: 5px 4px;
+            text-align: left;
+            font-weight: 600;
+            /* color: #8b949e; */
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+        td {
+            padding: 4px 4px;
+            border-bottom: 1px solid #21262d;
+            vertical-align: middle;
+            word-break: break-all;
+        }
+        tr:hover td {
+            background: rgba(48, 54, 61, 0.3);
+        }
+
+        /* 列宽分配 */
+       table {
+           table-layout: auto; 
+           width: 100%;
+       }
+       
+       /* 2. 其他列：根据内容自适应，尽量压缩宽度 */
+       .col-time, .col-symbol, .col-action {
+           width: 1%;          /* 占据最小必要宽度 */
+           white-space: nowrap; /* 内容不换行，保持在一行 */
+           padding: 8px 10px;
+       }
+       
+       /* 3. 理由列：占据剩余所有空间，加大显示区域 */
+       .col-reason {
+           width: 99%;         /* 占据表格剩余的全部宽度 */
+           white-space: normal; /* 允许文字正常换行，充分利用空间 */
+           word-break: break-word; /* 防止长单词撑破表格 */
+           padding: 8px 12px;
+           line-height: 1.5;   /* 增加行高，多行文字看着更舒服 */
+		   color: #ffe205;
+       }
+       
+       /* 4. 优化操作按钮区域，防止挤压 */
+       .col-action .action-btns {
+           display: flex;
+           gap: 6px;
+           justify-content: center;
+       }
+	   
+	   
+
+        .action-btns {
+            display: flex;
+            gap: 4px;
+            flex-wrap: nowrap;
+        }
+        .action-btns button {
+            border: none;
+            padding: 2px 2px;
+            font-size: 14px;
+            cursor: pointer;
+            border-radius: 2px;
+            font-weight: bold;
+            height: 20px;
+            line-height: 14px;
+			background-color: rgba(255, 255, 255, 0.1);
+        }
+		
+		.action-btns button:hover{
+			background: #e3b341;
+		}
+        .btn-highlight {
+            background: #d29922;
+            color: #000;
+        }
+        .btn-highlight.active {
+            background: #da3633;
+            color: #fff;
+        }
+        .btn-delete {
+            /* background: #30363d; */
+            color: #f85149;
+            /* border: 1px solid #f85149 !important; */
+        }
+
+        .highlight-row td {
+                background: rgb(162 255 0 / 25%) !important;;
+        }
+        .highlight-row:hover td {
+            background: rgba(210, 153, 34, 0.2) !important;
+        }
+		.col-open {
+		    width: 1%;
+		    white-space: nowrap;
+		    /* padding: 8px 10px; */
+		}
+		.col-open button {
+		    background: #21262d;
+		    border: 1px solid #30363d;
+		    color: #fff;
+		    padding: 2px 8px;
+		    font-size: 12px;
+		    cursor: pointer;
+		    border-radius: 3px;
+		    margin: 0 2px;
+		}
+		.col-open button:hover {
+		    background: #30363d;
+		}
+
+        .empty-tip {
+            padding: 40px 10px;
+            text-align: center;
+            color: #fff;
+            font-size: 13px;
+        }
+
+        /* 右半边空白占位 */
+        .right-placeholder {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            color: #30363d;
+            font-size: 14px;
+            user-select: none;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box-wrap">
+    <!-- 左侧 30% -->
+    <div class="left">
+        <!-- A部分：输入 -->
+        <div class="input-area">
+            <div class="input-row">
+                <input type="text" id="symbolInput" placeholder="合约名称" maxlength="20" autocomplete="off">
+                <input type="text" id="reasonInput" placeholder="开单理由" maxlength="50" autocomplete="off">
+                <button id="addBtn">确定</button>
+            </div>
+        </div>
+
+        <!-- B部分：表格 -->
+        <div class="table-wrapper" id="tableWrapper">
+            <table id="tradeTable">
+                <thead>
+                    <tr>
+                        <th class="col-time">开单时间</th>
+                        <th class="col-symbol">合约</th>
+						<th class="">操作</th>
+                        <th class="col-reason">理由</th>
+                        <th class="col-action">操作</th>
+                    </tr>
+                </thead>
+                <tbody id="tableBody">
+                    <!-- 由 refreshTable 填充 -->
+                </tbody>
+            </table>
+            <div id="emptyTip" class="empty-tip">暂无交易记录</div>
+        </div>
+    </div>
+
+    <!-- 右侧空白 -->
+    <div class="right">
+       <div class="chart-container" id="chartContainer"></div>
+    </div>
+</div>
+	
+   <script src="show.js"></script>
+<script>
+// ====== 事件绑定 ======
+$(document).ready(function() {
+    // 初始渲染
+    refreshTable();
+
+    // 添加按钮
+    $('#addBtn').on('click', function() {
+        addTrade();
+    });
+
+    // 回车键支持（在输入框中按回车触发添加）
+    $('#symbolInput, #reasonInput').on('keydown', function(e) {
+        if (e.key === 'Enter') {
+            $('#addBtn').click();
+        }
+    });
+
+    // 事件委托：编辑按钮
+    $('#tableBody').on('click', '.btn-edit', function() {
+        const idx = parseInt($(this).data('index'), 10);
+        const list = getLocal(STORAGE_KEY) || [];
+        
+        if (idx >= 0 && idx < list.length) {
+            const item = list[idx];
+            
+            // 填充输入框
+            $('#symbolInput').val(item.symbol);
+            $('#reasonInput').val(item.reason);
+            
+            // 修改按钮文字
+            $('#addBtn').text('确定编辑');
+            
+            // 记录正在编辑的索引
+            editingIndex = idx;
+        }
+    });
+
+    // 事件委托：高亮按钮
+    $('#tableBody').on('click', '.btn-highlight', function() {
+        const idx = parseInt($(this).data('index'), 10);
+        toggleHighlight(idx);
+    });
+
+    // 事件委托：删除按钮
+    $('#tableBody').on('click', '.btn-delete', function() {
+        const idx = parseInt($(this).data('index'), 10);
+        if (confirm('确认删除这条记录吗？')) {
+            deleteTrade(idx);
+        }
+    });
+	
+	//打开图表
+	$('#numK').val(200).change();	
+	$("#tradeTable").on("click",".btn-show",function(){
+		const symbol=$(this).data("symbol")
+		startShow2([symbol],$("#intervalx").val());
+	})
+	
+	$("#tradeTable").on("click",".btn-coin",function(){
+		const symbol=$(this).data("symbol")
+		window.open("https://www.coinglass.com/tv/zh/Binance_"+symbol, '_blank');
+	})
+});	
+
+// ====== 初始化 tradeList ======
+if (!getLocal('tradeList')) {
+    setLocal('tradeList', []);
+}
+
+// ====== 全局变量 ======
+const STORAGE_KEY = 'tradeList';
+let editingIndex = -1; // -1 表示新增模式
+
+// ====== 刷新表格 ======
+function refreshTable() {
+    const list = getLocal(STORAGE_KEY) || [];
+    const tbody = $('#tableBody');
+    const emptyTip = $('#emptyTip');
+
+    tbody.empty();
+
+    if (list.length === 0) {
+        emptyTip.show();
+        return;
+    }
+    emptyTip.hide();
+
+    // 最多显示20行
+    const showList = list.slice(0, 20);
+
+    $.each(showList, function(index, item) {
+        // 格式化时间
+        let timeStr = '';
+        if (item.time) {
+            const d = new Date(item.time);
+            const pad = n => String(n).padStart(2, '0');
+            timeStr = `${pad(d.getMonth()+1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        }
+
+        const isHighlight = item.highlight === true;
+        const rowClass = isHighlight ? 'highlight-row' : '';
+
+        const tr = $(`
+            <tr class="${rowClass}" data-index="${index}">
+                <td class="col-time">${timeStr}</td>
+                <td class="col-symbol" >
+                    <a href="https://www.binance.com/zh-CN/futures/${encodeURIComponent(item.symbol || '')}" target="_blank" style="color:#ffe205;text-decoration:none;">${escapeHtml(item.symbol || '')} </a>
+                </td>
+				<td class="col-open">
+					<button class="btn-show" data-symbol="${escapeHtml(item.symbol || '')}">Show</button>
+					<button class="btn-coin" data-symbol="${escapeHtml(item.symbol || '')}">Coin</button>
+				</td>
+                <td class="col-reason">${escapeHtml(item.reason || '')}</td>
+                <td class="col-action">
+                    <div class="action-btns">
+                        <button class="btn-edit" data-index="${index}" title="编辑">✏️</button>
+                        <button class="btn-highlight ${isHighlight ? 'active' : ''}" data-index="${index}" title="${isHighlight ? '取消高亮' : '高亮'}">⭐</button>
+                        <button class="btn-delete" data-index="${index}" title="删除">🗑️</button>
+                    </div>
+                </td>
+            </tr>
+        `);
+        tbody.append(tr);
+    });
+}
+
+// ====== 简单的转义防止XSS ======
+function escapeHtml(str) {
+    if (!str) return '';
+    return str.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#039;');
+}
+
+// ====== 添加记录 ======
+function addTrade() {
+    const symbol = $('#symbolInput').val().trim();
+    const reason = $('#reasonInput').val().trim();
+
+    if (!symbol) {
+        alert('请输入合约名称');
+        $('#symbolInput').focus();
+        return;
+    }
+    if (!reason) {
+        alert('请输入开单理由');
+        $('#reasonInput').focus();
+        return;
+    }
+
+    if (editingIndex >= 0) {
+        // 编辑模式
+        const list = getLocal(STORAGE_KEY) || [];
+        if (editingIndex < list.length) {
+            list[editingIndex].symbol = symbol;
+            list[editingIndex].reason = reason;
+            setLocal(STORAGE_KEY, list);
+            
+            // 恢复按钮状态
+            $('#addBtn').text('确定');
+            editingIndex = -1;
+            
+            // 清空输入框
+            $('#symbolInput').val('');
+            $('#reasonInput').val('');
+            
+            refreshTable();
+        }
+    } else {
+        // 新增模式
+        const newItem = {
+            symbol: symbol,
+            reason: reason,
+            time: Date.now(),
+            highlight: false
+        };
+
+        const list = getLocal(STORAGE_KEY) || [];
+        list.unshift(newItem);
+        setLocal(STORAGE_KEY, list);
+
+        // 清空输入框
+        $('#symbolInput').val('');
+        $('#reasonInput').val('');
+
+        refreshTable();
+    }
+}
+
+// ====== 切换高亮 ======
+function toggleHighlight(index) {
+    const list = getLocal(STORAGE_KEY) || [];
+    if (index < 0 || index >= list.length) return;
+
+    list[index].highlight = !list[index].highlight;
+    setLocal(STORAGE_KEY, list);
+    refreshTable();
+}
+
+// ====== 删除记录 ======
+function deleteTrade(index) {
+    const list = getLocal(STORAGE_KEY) || [];
+    if (index < 0 || index >= list.length) return;
+
+    list.splice(index, 1);
+    setLocal(STORAGE_KEY, list);
+    refreshTable();
+}
+
+
+</script>
+
+</body>
+</html>

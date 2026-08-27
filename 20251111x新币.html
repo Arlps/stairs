@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>新币</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.6.0/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/echarts@5.4.3/dist/echarts.min.js"></script>
+	<link rel="stylesheet" href="show.css" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color:#0d1117;
+			/* background-color: #c8ba0a; */
+            color: #e0e0e0;
+            padding: 10px;
+        }
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+        }
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+			display: none;
+        }
+        .title {
+            font-size: 20px;
+            font-weight: bold;
+            color: #0ecb81;
+        }
+		/* #chart{ display:none} */
+		#chart{
+			padding: 0px 10px ; background-color: #0ecb81;color: #fff;border-radius: 5px;
+		}
+		.top{
+			background-color: #0d1117; padding:5px; border-radius: 5px;
+		}
+		.chart-box{
+			width: 98%; height: 700px!important;
+		}
+    </style>
+</head>
+<body>
+    <div class="container">
+		<div class="top">
+			<span>《新上线合约》===>>    </span>
+			
+			<span>数量</span>
+			<select id="amount"><option value="1" selected>1</option>
+				<option value="10">10</option>
+				<option value="50">50</option>
+				<option value="100">100</option>
+				<option value="200" >200</option>
+				<option value="300">300</option>
+				<option value="400">400</option>
+				<option value="500">500</option>
+				<option value="all">所有</option>
+			</select>
+			<span>周期：</span>
+			<select id="intervalx">
+				<option value="1m">1m</option>
+				<option value="5m">5m</option>
+				<option value="1h">1h</option>
+				<option value="1m">1m</option>
+				<option value="15m">15m</option>
+				<option value="30m">30m</option>
+				<option value="4h">4h</option>
+				<option value="12h">12h</option>
+				<option value="1d" selected>1d</option>
+				<option value="1w">1w</option>
+			</select>
+			<button id="chart">K线图</button>
+		</div>
+    </div>
+	
+	
+ <div id="loadingIndicator" class="loadin"></div>
+   	<div class="chart-container" id="chartContainer"></div>
+   <script src="show.js"></script>
+    <script>
+        $(document).ready(function() {
+			$('#numK').val(200).change();
+            // 存储所有图表实例和状态
+            const charts = {};
+            $("#chart").click(function(){
+				var arr=getBinancePerpetualSymbolsSync();
+				console.log(arr)
+				const amount=$("#amount").val();
+				if(amount!="all"){
+					arr=arr.slice(-amount);
+				}
+				if (arr.length > 0) {
+					arr=arr.reverse()
+				    startShow2(arr,$("#intervalx").val());
+				}
+			})
+			
+			
+			function getBinancePerpetualSymbolsSync() {
+				var symbolsArray = [];
+				$.ajax({
+					url: 'https://fapi.binance.com/fapi/v1/exchangeInfo', // 币安永续合约API地址[5](@ref)
+					type: 'GET', // 使用GET方法[1](@ref)
+					dataType: 'json', // 预期返回JSON格式数据[1](@ref)
+					async: false, // 关键设置：启用同步模式[2,6,7](@ref)
+					success: function(response) {
+						// 成功回调函数内处理数据[1,3](@ref)
+						// if (response && response.symbols) {
+						// 	// 筛选永续合约并提取名称[1](@ref)
+						// 	symbolsArray = response.symbols
+						// 		.filter(symbol =>  symbol.contractType === 'PERPETUAL'  && symbol.symbol.endsWith('USDT')) // 过滤永续合约
+						// 		.map(symbol => symbol.symbol); // 提取交易对名称
+						// }
+						
+						if (response && response.symbols) {
+							// 筛选永续合约并提取名称[1](@ref)
+							symbolsArray = response.symbols
+								.filter(symbol =>  symbol.contractType === 'PERPETUAL'  && symbol.symbol.endsWith('USDT')) // 过滤永续合约
+								// .filter(symbol =>  symbol.contractType === 'TRADIFI_PERPETUAL'  && symbol.symbol.endsWith('USDT')) // 过滤永续合约
+								.map(symbol => symbol.symbol); // 提取交易对名称
+						}
+						
+					},
+					
+					error: function(xhr, status, error) {
+						// 错误处理[1,7](@ref)
+						console.error('请求失败:', status, error);
+						alert('获取数据失败，请检查网络连接或API可用性。');
+					}
+				});
+				
+				// console.log(symbolsArray)
+				return symbolsArray; // 返回结果数组[8](@ref)
+			}
+            
+         
+        });
+		
+		
+	
+		
+		
+		
+		
+		
+    </script>
+</body>
+</html>

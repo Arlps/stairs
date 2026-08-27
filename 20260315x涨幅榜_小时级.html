@@ -547,13 +547,16 @@
 		let history1m=[];
 		let questKnum=$("#scan_range").val();
 		const questInterval="15m";
-		const detectTime=["15m","30m","1h","2h","4h","8h","12h","1d"];
+		const detectTime=["15m","30m","1h","2h","4h","8h"];
+		// const detectTime=["15m","30m","1h","2h","4h","8h","12h","1d"];
 		
 		// 调用函数并输出结果
 		var perpetualSymbols = getBinancePerpetualSymbolsSync();
 		// 排除前50名的合约
+		// console.log(perpetualSymbols)
 		var allSymbols=perpetualSymbols.slice(50);  
-		
+		// console.log(allSymbols)
+		// alert()
 		// var allSymbols=perpetualSymbols.slice(500,550);
 		
 		//====================================================================================================
@@ -568,7 +571,7 @@
 			
 			// localStorage.removeItem("Vol1and5");
 			$('#numK').val(200).change();
-			$('#questNum').val(1000).change();
+			$('#questNum').val(500).change();
 			// if(!localStorage.Vol1and5){
 			// 	setLocal("Vol1and5",[])
 			// }
@@ -635,6 +638,7 @@
 					signal:$(this).data("signal")
 				}]
 				startShowX(xarr,xarr.interval,xarr.signal)
+				// startShowX(xarr,xarr.interval,xarr.info)
 			})
 			
 			// makeTable($("#tableAll tbody"),getLocal("Vol1and5").reverse())
@@ -718,7 +722,7 @@
 		            if (response && response.symbols) {
 		                // 筛选永续合约并提取名称[1](@ref)
 		                symbolsArray = response.symbols
-		                    .filter(symbol => symbol.contractType === 'PERPETUAL' && symbol.symbol.endsWith('USDT') && !symbol.symbol.startsWith('1000')) // 过滤永续合约
+		                    .filter(symbol => symbol.contractType === 'PERPETUAL' && symbol.symbol.endsWith('USDT')) // 过滤永续合约
 		                    .map(symbol => symbol.symbol); // 提取交易对名称
 		            }
 		        },
@@ -799,20 +803,17 @@
 			const total = allSymbols.length;
 			const BATCH_SIZE = 10; // 控制并发请求数量
 			const DELAY = 10; // 请求延迟(ms)
-			
 		    const endIndex = Math.min(startIndex + BATCH_SIZE, total);
 		    for (let i = startIndex; i < endIndex; i++) {
 		        setTimeout(() => {
 		            const symbol = allSymbols[i];
-		            
+		            if(symbol=="DOSUSDT"){
+		            	alert()
+		            }
 					Acounter++;
 					$scan.html("   扫描："+total+" / "+Acounter+" ( "+symbol+" ) ");
 					
 					
-					//跳过两个无用symbol
-					if(symbol=="GAIBUSDT" || symbol=="BTCSTUSDT"){
-						return;
-					}
 		            // 获取K线
 		            $.ajax({
 		                url: 'https://fapi.binance.com/fapi/v1/klines',
@@ -824,6 +825,8 @@
 		                },
 		                dataType: 'json',
 		                success: function(klineData) {
+							
+							
 							const test=klineData.at(-1)
 							if(test[1]==test[4] && test[2]==test[3]){
 								return;
@@ -887,14 +890,16 @@
 				}
 				
 				if(item=="15m"){
-					x_start0(symbol, item, arr, 24)
+					x_start0(symbol, item, arr, 12)
+					x_bow(symbol, item, arr, 100)
 					// bear(symbol, item, arr,len )
 					// bear1(symbol, item, arr,len )
 					// bamboo(symbol, item, arr, 100)
 				}
 				
 				if(item=="30m"){
-					x_start0(symbol, item, arr, 24)
+					x_start0(symbol, item, arr, 12)
+					x_bow(symbol, item, arr, 100)
 					// bear(symbol, item, arr,len )
 					// bear1(symbol, item, arr,len )
 					// bamboo(symbol, item, arr, 50)
@@ -903,7 +908,9 @@
 				if(item=="1h"){
 					x_start0(symbol, item, arr, 24)
 					bear(symbol, item, arr,10)
-					star(symbol, item, arr,20)
+					x_bow(symbol, item, arr, 100)
+					bear(symbol, item, arr,10 )
+					// star(symbol, item, arr,20)
 					// bear1(symbol, item, arr,len )
 					// bamboo(symbol, item, arr, 50)
 				}
@@ -911,7 +918,8 @@
 				if(item=="2h"){
 					x_start0(symbol, item, arr, 12)
 					bear(symbol, item, arr,10 )
-					star(symbol, item, arr,10)
+					bear(symbol, item, arr,10 )
+					// star(symbol, item, arr,10)
 					// bear1(symbol, item, arr,len )
 					// bamboo(symbol, item, arr, 50)
 				}
@@ -919,7 +927,8 @@
 				if(item=="4h"){
 					x_start0(symbol, item, arr, 6)
 					bear(symbol, item, arr,5 )
-					star(symbol, item, arr, len)
+					bear(symbol, item, arr,5 )
+					// star(symbol, item, arr, len)
 					// bear1(symbol, item, arr,len )
 					// bamboo(symbol, item, arr, 30)
 					
@@ -928,7 +937,8 @@
 				if(item=="8h"){
 					x_start0(symbol, item, arr, 3)
 					bear(symbol, item, arr,5 )
-					star(symbol, item, arr, len)
+					bear(symbol, item, arr,5 )
+					// star(symbol, item, arr, len)
 				}
 				
 				// if(item=="12h"){

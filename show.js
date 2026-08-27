@@ -1,7 +1,7 @@
            $("body").css("position","relative");
 		   $('<span id="tipsBox"></span>').appendTo($("body"));
 		   $('<div id="localBox" class="show-pc"></div>').appendTo($("body"));
-		   $('<div id="breakList">1231233</div>').appendTo($("body"));
+		   // $('<div id="breakList">1231233</div>').appendTo($("body"));
 		   //生成本地数据读取
 		   var $dom_local=$('<select id="local"></select>');
 		   var $dom_localBtn=$('<button id="loadLocal">加载</button>');
@@ -11,7 +11,7 @@
 		   // 	$dom_local.append($("<option value="+key+">"+key+"</option>"));
 		   // }
 		   // 反序生成
-		   var optionkeys = Object.keys(allLocal);  // 获取所有 key
+		   var optionkeys = allLocal ? Object.keys(allLocal) : [];  // 获取所有 key
 		   optionkeys.reverse();  // 反转数组顺序
 		   for (var i = 0; i < optionkeys.length; i++) {
 		       var key = optionkeys[i];
@@ -28,7 +28,17 @@
 		   	if(!nowInterval){
 		   		 $("#chooseTime option[value='1d']").prop("selected", true);
 		   	}
-		   	startShow2(arr,"1d")
+			if(datex<"20260810"){
+				startShow2(arr,"1d");
+			}else{
+				for (var i = 0; i < arr.length; i++) {
+					arr[i].info="【"+mmddhh(arr[i].time)+"】#【"+arr[i].interval+"】# 【"+arr[i].signal+"】"
+				}
+				startShowX(arr,"1h","info");
+			}
+		   	
+			
+			
 		   })
 		   
 		   //全局数据
@@ -259,23 +269,22 @@
 			    
 			    // 发起同步AJAX请求[2,7](@ref)
 			    $.ajax({
-			        url: 'https://fapi.binance.com/fapi/v1/exchangeInfo', // 币安永续合约API地址[5](@ref)
-			        type: 'GET', // 使用GET方法[1](@ref)
-			        dataType: 'json', // 预期返回JSON格式数据[1](@ref)
-			        async: false, // 关键设置：启用同步模式[2,6,7](@ref)
+			        url: 'https://fapi.binance.com/fapi/v1/exchangeInfo', 
+			        type: 'GET', 
+			        dataType: 'json', 
+			        async: false, 
 			        success: function(response) {
 			            // 成功回调函数内处理数据[1,3](@ref)
 			            if (response && response.symbols) {
 			                // 筛选永续合约并提取名称[1](@ref)
 			                symbolsArray = response.symbols
-			                    .filter(symbol => symbol.contractType === 'PERPETUAL') // 过滤永续合约
+			                    .filter(symbol => symbol.contractType === 'PERPETUAL' && symbol.symbol.endsWith('USDT')) // 过滤永续合约
 			                    .map(symbol => symbol.symbol); // 提取交易对名称
 			            }
-						symbolsArray=symbolsArray.filter(Symbol=>Symbol!=="GAIBUSDT");
+						// symbolsArray=symbolsArray.filter(Symbol=>Symbol!=="GAIBUSDT");
 						// console.log(symbolsArray)
 			        },
 			        error: function(xhr, status, error) {
-			            // 错误处理[1,7](@ref)
 			            console.error('请求失败:', status, error);
 			            alert('获取数据失败，请检查网络连接或API可用性。');
 			        }
@@ -286,11 +295,13 @@
 			
 			// 调用函数并输出结果
 			var allSymbolsArr = getBinancePerpetualSymbolsSync();
+			console.log(JSON.stringify(allSymbolsArr))
 			
 
    
 			//对象数组中的名称属性
 			function startShow(arr,time,refresh){
+				console.log(arr)
 				// console.log("start===========")
 				kedu=time;
 				for (var i = 0; i < arr.length; i++) {
@@ -365,22 +376,61 @@
 			}
 			
 			
-			//添加到每天历史储存
+			//添加到每天历史储存 === 只有合约名称
+			// $(".chart-container").on("click", ".chart-box .save", function() {
+			// 	const name = $(this).siblings('.symbol-name').text();
+			// 	let $daily = getLocal("local_daily");
+			// 	const today=getToday();
+			// 	if(!$daily[today]){
+			// 		$daily[today]=[] 
+			// 	}
+			// 	if(!$daily[today].includes(name)){
+			// 		$daily[today].push(name);
+			// 		console.log($daily)
+			// 		setLocal("local_daily",$daily);
+			// 		$("#tipsBox").html(`已添加 "${name}" 到${today}`).removeClass("tips-fail").fadeIn(300).delay(1000).fadeOut(1000);
+			// 	}else{
+			// 		$("#tipsBox").html(today+"已存在"+name).addClass("tips-fail").fadeIn(300).delay(1000).fadeOut(1000);
+			// 	}			
+			// });
+			
+			//添加到每天历史储存==包含合约完整信号信息
 			$(".chart-container").on("click", ".chart-box .save", function() {
 				const name = $(this).siblings('.symbol-name').text();
+				let info = $(this).data("info");
+				if(!info){
+					info=JSON.stringify({
+						symbol:name,
+						interval:"1h",
+						signal:"____",
+						time:Date.now()
+					})
+				}else{
+					info=info.replace(/'/g, '"');
+				}
+				
+				const symbol_data=JSON.parse(info)
 				let $daily = getLocal("local_daily");
 				const today=getToday();
 				if(!$daily[today]){
 					$daily[today]=[] 
 				}
-				if(!$daily[today].includes(name)){
-					$daily[today].push(name);
+				
+				let sameFlag=false;
+				for (var i = 0; i < $daily[today].length; i++) {
+					if(JSON.stringify($daily[today][i])==info){
+						$("#tipsBox").html(today+"已存在"+info).addClass("tips-fail").fadeIn(300).delay(1000).fadeOut(1000);
+						sameFlag=true;
+						break;
+					}
+				}
+				if(!sameFlag){
+					$daily[today].push(symbol_data);
 					console.log($daily)
 					setLocal("local_daily",$daily);
-					$("#tipsBox").html(`已添加 "${name}" 到${today}`).removeClass("tips-fail").fadeIn(300).delay(1000).fadeOut(1000);
-				}else{
-					$("#tipsBox").html(today+"已存在"+name).addClass("tips-fail").fadeIn(300).delay(1000).fadeOut(1000);
-				}			
+					$("#tipsBox").html(`已添加 "${info}" 到${today}`).removeClass("tips-fail").fadeIn(300).delay(1000).fadeOut(1000);
+				}
+			
 			});
 			
 			//添加到监控本地存储
@@ -514,7 +564,7 @@
 			    refreshAllCharts();
 			    
 			    // 然后每分钟刷新一次
-					// setInterval(refreshAllCharts, 60000);
+					setInterval(refreshAllCharts, 60000);
 			    
 			}
 			
@@ -536,11 +586,16 @@
 			// 添加图表函数
 			function addChart(symbol,msgKey) {
 				let time;
+				let thisInterval;
 				let signal;
 				let msg="";
+				let info="";
 				if (typeof symbol === 'object' ) {
 					 if(symbol.time){
 						 time=symbol.time
+					 }
+					 if(symbol.interval){
+					 	thisInterval=symbol.interval
 					 }
 					 if(symbol.signal){
 					 	signal=symbol.signal
@@ -548,7 +603,10 @@
 					if(msgKey){
 						msg=symbol[msgKey];				 
 					}
-					symbol=symbol.symbol
+					info=JSON.stringify(symbol);
+					info=info.replace(/"/g, "'")
+					symbol=symbol.symbol;
+					
 				}
 				
 
@@ -564,14 +622,14 @@
 				var widthClass=$("#width").prop('checked')?"width50":"width100";
 				
 			    const chartBox = $(`
-			        <div class="chart-box ${widthClass}" id="${chartId}" data-name="${symbol}">
+			        <div class="chart-box ${widthClass}" id="${chartId}" data-name="${symbol}" data-info="${info}">
 			            <div class="chart-header">
 			                <div class="symbol-info show-pc">
 								
 			                    <span class="symbol-name" data-symbol="${symbol}">${symbol}</span>
 								<a class="coinglass" href="https://www.coinglass.com/tv/zh/Binance_${symbol}" target="_blank">></a>
 								<span class="position">${positionArr}</span>
-								<input type="checkbox" name="save-${symbol}" class="save" />
+								<input type="checkbox" name="save-${symbol}" class="save" data-info="${info}" />
 								<span class="label2">日</span>
 								<input type="checkbox" name="monitor-${symbol}" class="monitor" />
 								<span class="label2">监</span>
@@ -685,7 +743,14 @@
 			    
 			    // 加载初始数据
 			    // fetchKlineDataX(symbol, kedu);
-				fetchKlineDataX(symbol, $("#chooseTime").val());
+				if(thisInterval){
+					fetchKlineDataX(symbol, thisInterval);
+					$(`#${chartId} .interval-btn`).removeClass('active');
+					$(`#${chartId} .interval-btn[data-interval="${thisInterval}"]`).addClass('active')
+				}else{
+					fetchKlineDataX(symbol, $("#chooseTime").val());
+				}
+				
 				
 				
 			    // fetchCurrentPrice(symbol);
@@ -963,7 +1028,7 @@
 			            {
 			                left: '1%',
 			                right: '6%',
-			                top: '60%',
+			                top: '70%',
 			        		bottom:"5%",
 			                // height: '28%'
 			            }
@@ -979,14 +1044,27 @@
 			                splitNumber: 20,
 			                min: 'dataMin',
 			                max: 'dataMax',
-			                axisLabel: {
-			                    color: '#999',
-			                    fontSize: 12,
-			                    show: false
-			                },
+			                // axisLabel: {
+			                //     color: '#999',
+			                //     fontSize: 12,
+			                //     show: false
+			                // },
+							axisLabel: {
+								color: '#aaa',
+								fontSize: 12,
+								formatter:function(e){
+									if(e[0]=="2"){
+										const arr=e.split(" ");
+										const date=arr[0].split("/");
+										const time=arr[1].split(":");
+										return date[1]+"/"+date[2]+" "+time[0]+":"+time[1]
+									}
+									
+								}
+							},
 			                axisLine: {
 			                    lineStyle: {
-			                        color: '#444'
+			                        color: '#aaa'
 			                    }
 			                },
 							axisPointer: {
@@ -1004,19 +1082,24 @@
 			                axisLine: { onZero: false },
 			                axisTick: { show: false },
 			                splitLine: { show: false },
-			                axisLabel: {
-			                	color: '#fff',
-			                	fontSize: 12,
-			                	formatter:function(e){
-			                		if(e[0]=="2"){
-			                			const arr=e.split(" ");
-			                			const date=arr[0].split("/");
-			                			const time=arr[1].split(":");
-			                			return date[1]+"/"+date[2]+" "+time[0]+":"+time[1]
-			                		}
+							axisLabel: {
+							    color: '#aaa',
+							    fontSize: 12,
+							    show: false
+							},
+			                // axisLabel: {
+			                // 	color: '#fff',
+			                // 	fontSize: 12,
+			                // 	formatter:function(e){
+			                // 		if(e[0]=="2"){
+			                // 			const arr=e.split(" ");
+			                // 			const date=arr[0].split("/");
+			                // 			const time=arr[1].split(":");
+			                // 			return date[1]+"/"+date[2]+" "+time[0]+":"+time[1]
+			                // 		}
 			                		
-			                	}
-			                },
+			                // 	}
+			                // },
 			                axisLine: {
 			                    lineStyle: {
 			                        color: '#444'
@@ -1186,27 +1269,7 @@
 			                        }
 			                    };
 			                }),
-							//显示柱子代表的最高价
-							// markPoint: {
-							// 	data: [
-							// 	  {
-							// 		type: 'max', // 自动识别最大值
-							// 		name: '最高值', // 显示的标签名称
-							// 		symbol: 'arrow',
-							// 		symbolSize: 0.5,
-							// 		label:{
-							// 			color: '#fff',
-							// 			position: 'top',  // 在标记点上方显示
-							// 			formatter:function(params){
-							// 				console.log(params)
-							// 				return energyback((params.value).toFixed(2));
-											
-											
-							// 			}
-							// 		}
-							// 	  }
-							// 	]
-							//   },
+						
 							  //显示对应的成交额
 							  markPoint: {
 							      data: [
@@ -1219,35 +1282,12 @@
 							                  color: '#fff',
 							                  position: 'top',
 							                  formatter: function(params) {
-												  return energyback(maxVolumeTurnover.toFixed(2));
+												  return " "; // energyback(maxVolumeTurnover.toFixed(2));
 							                  }
 							              }
 							          }
 							      ]
 							  },
-							//   markPoint: {
-							// 	data: [
-							// 		{
-							// 			type: 'max',
-							// 			name: '最高值',
-							// 			symbol: 'arrow',
-							// 			symbolSize: 0.5,
-							// 			label: {
-							// 				color: '#fff',
-							// 				position: 'top',
-							// 				formatter: function(params) {
-							// 					// params.value 就是当前被标记的那根柱子的 volume 值
-							// 					// 但你想显示 turnover，需要通过 dataIndex 去取
-							// 					const idx = params.dataIndex;
-							// 					const turnover = klineData[idx] ? klineData[idx].turnover : params.value;
-							// 					return energyback(turnover.toFixed(2));
-							// 				}
-							// 			}
-							// 		}
-							// 	]
-							// }
-			                // barWidth: '60%',
-			                // barCategoryGap: '20%'
 			            }
 			        ]
 			    };
@@ -1987,6 +2027,15 @@
 			
 			    return `${month}${date}-${hour}`;
 			}
+			function mmddhhmm(timestamp) {
+			    const now = new Date(timestamp);
+			
+			    const month = (now.getMonth() + 1).toString().padStart(2, '0');
+			    const date = now.getDate().toString().padStart(2, '0');
+			    const hour = now.getHours().toString().padStart(2, '0');
+				const minutes = now.getMinutes().toString().padStart(2, '0')
+			    return `${month}${date}-${hour}${minutes}`;
+			}
 			
 			function sortDataByTime(data) {
 			    const result = {};
@@ -2025,5 +2074,16 @@
 			    }
 			    
 			    return duplicateCount;
+			}
+			
+			//"20260715 1250"格式的yyyyMMdd hhmm 时间字符串转成时间戳
+			function strToStamp(timeStr) {
+			    let year = parseInt(timeStr.substring(0, 4));
+			    let month = parseInt(timeStr.substring(4, 6)) - 1; // 月份从0开始
+			    let day = parseInt(timeStr.substring(6, 8));
+			    let hour = parseInt(timeStr.substring(9, 11));
+			    let minute = parseInt(timeStr.substring(11, 13));
+			    
+			    return new Date(year, month, day, hour, minute).getTime();
 			}
 			

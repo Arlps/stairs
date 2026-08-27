@@ -177,7 +177,7 @@ a{color: yellow;
 		}
 		#localBox{
 			position: fixed;
-			top: 0; right: 0;
+			bottom: 0; right: 0;
 			padding: 5px;
 			font-size: 12px;
 			background-color: rgba(0,0,0,0.5);
@@ -218,6 +218,7 @@ a{color: yellow;
 		    top: 0; /* 当滚动到距离顶部 0px 时固定 */
 		    z-index: 1000; /* 确保在最上层 */
 		    background: #392d09; /* 防止内容穿透 */
+			background: rgba(0, 0, 0, 0.5);
 		}
 		#menu select{
 			width: 50px;
