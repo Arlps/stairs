@@ -43,7 +43,7 @@ function x_start0(symbol, item, arr, num) {
 	if (item == "1m") { pre = 10; per = 0.005; vol2 = 10000; }
 	if (item == "5m") { pre = 50; per = 0.005; vol2 = 10000; }
 	if (item == "15m") { pre = 20; per = 0.005; vol2 = 10000; }
-	else if (item == "30m") { pre = 10; per = 0.01; vol2 = 500000; }
+	else if (item == "30m") { pre = 30; per = 0.01; vol2 = 500000; }
 	else if (item == "1h") { pre = 10; per = 0.02; vol2 = 500000; }
 	else if (item == "2h") { pre = 10; per = 0.02; vol2 = 1000000; }
 	else if (item == "4h") { pre = 5; per = 0.02; vol2 = 2000000; }
@@ -73,6 +73,9 @@ function x_start0(symbol, item, arr, num) {
 		
 	    // A必须是阳线（上涨K线）======================
 	    if (A.close <= A.open) continue;
+		
+		
+
 				
 	    // 取消：A 的成交额必须大于等于 vol2 =========================
 	    // if (A.quoteVolume < vol2) continue;
@@ -82,6 +85,15 @@ function x_start0(symbol, item, arr, num) {
 	    if (aChange <= per) continue;
 				
 	    const preKlines = klines.slice(i - pre, i);
+		
+		// 【新增条件】30m：A的交易量必须 >= 前面20根任意一根的交易量
+		if (item == "30m" || item == "15m") {
+		    const pre20VolumeMax = Math.max(
+		        ...klines.slice(i - 20, i).map(k => k.volume)
+		    );
+		
+		    if (A.volume < pre20VolumeMax) continue;
+		}
 				
 	    // 5m/15m的前提下  A的最高价大于前面任意一根的最高价================================
 		// if(item=="5m" || item=="15m"){
@@ -689,8 +701,108 @@ function x_bow(symbol, item, arr, num) {
 }
 
 
-
-
+// 30m 箱体突破
+function breakbox(symbol, item, arr, num = 10) {
+    const pre = 50;
+    
+    // 如果数组长度不足，返回false
+    if (arr.length < 2) return false;
+    
+    // 确定要检查的K线范围
+    const checkCount = Math.min(num, arr.length);
+    const startIndex = arr.length - checkCount;
+    
+    // 获取pre根K线（从倒数第checkCount根之前开始取）
+    const preStartIndex = Math.max(0, startIndex - pre);
+    const preKlines = arr.slice(preStartIndex, startIndex);
+    
+    // 如果preKlines不足pre根，用全部可用的
+    const actualPre = preKlines.length;
+    if (actualPre < 1) return false;
+    
+    // 计算pre中的最高价
+    const preHighs = preKlines.map(k => k.high);
+    const maxPreHigh = Math.max(...preHighs);
+    
+    // 检查最后num根K线中是否存在符合条件的K线A
+    for (let i = startIndex; i < arr.length; i++) {
+        const currentK = arr[i];
+        
+        // 条件1: 价格大于pre中的最高价
+        if (currentK.high <= maxPreHigh) continue;
+        
+        // 获取当前K线之前的10根K线（用于比较成交量和涨幅）
+        const prevStart = Math.max(0, i - 11); // 包含当前K线前一格，共10根
+        const prevKlines = arr.slice(prevStart, i);
+        
+        if (prevKlines.length < 10) continue; // 不足10根，跳过
+        
+        // 检查成交量是否大于前10根每一根
+        let volumeCondition = true;
+        for (let j = 0; j < prevKlines.length; j++) {
+            if (currentK.volume <= prevKlines[j].volume) {
+                volumeCondition = false;
+                break;
+            }
+        }
+        if (!volumeCondition) continue;
+        
+        // 计算当前K线涨幅
+        const currentChange = (currentK.close - currentK.open) / currentK.open;
+        
+        // 检查涨幅是否大于前10根每一根
+        let changeCondition = true;
+        for (let j = 0; j < prevKlines.length; j++) {
+            const prevChange = (prevKlines[j].close - prevKlines[j].open) / prevKlines[j].open;
+            if (currentChange <= prevChange) {
+                changeCondition = false;
+                break;
+            }
+        }
+        if (!changeCondition) continue;
+        
+        // 条件2: 统计pre中最高价前3名（间隔至少2根K线，且不相差1%）
+        // 先按最高价排序并筛选符合条件的K线
+        const sortedByHigh = [...preKlines]
+            .map((k, idx) => ({ ...k, originalIndex: idx }))
+            .sort((a, b) => b.high - a.high);
+        
+        // 筛选出符合间隔条件的K线
+        const selected = [];
+        for (let k of sortedByHigh) {
+            if (selected.length >= 3) break;
+            
+            // 检查与已选K线的间隔
+            let valid = true;
+            for (let s of selected) {
+                if (Math.abs(k.originalIndex - s.originalIndex) < 3) { // 至少相隔2根 => index差>=3
+                    valid = false;
+                    break;
+                }
+            }
+            
+            if (valid) {
+                selected.push(k);
+            }
+        }
+        
+        // 如果选出的K线少于3个，条件不满足
+        if (selected.length < 3) continue;
+        
+        // 检查前三名最高价是否相差不超过1%
+        const top3Highs = selected.slice(0, 3).map(k => k.high);
+        const maxHigh = Math.max(...top3Highs);
+        const minHigh = Math.min(...top3Highs);
+        
+        if ((maxHigh - minHigh) / maxHigh > 0.01) continue;
+        
+        // 所有条件满足，执行collect_signal
+        collect_signal(symbol, item, "box", currentK.time);
+        return true;
+    }
+    
+    return false;
+}
 
 
 

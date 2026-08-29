@@ -296,7 +296,13 @@
 			</span>
 			<label style="margin:0 10px; vertical-align: middle; line-height: 1; cursor: pointer; ">
 			    <input type="checkbox" id="syncBTC" style="vertical-align: middle; margin-right: 3px; cursor: pointer; width: 20px; height: 1.25rem;">
-			    <span style="vertical-align: middle; font-size: 18pxpx;">同步BTC</span>
+			    <span style="vertical-align: middle; font-size: 18pxpx;">BTC</span>
+				
+			</label>
+			<label style="margin:0 10px; vertical-align: middle; line-height: 1; cursor: pointer; ">
+			    <input type="checkbox" id="log" style="vertical-align: middle; margin-right: 3px; cursor: pointer; width: 20px; height: 1.25rem;">
+			    <span style="vertical-align: middle; font-size: 18pxpx;" >Log</span>
+				
 			</label>
 			<span>
 				<input type="text" id="calc">
@@ -660,6 +666,14 @@
 					window.open("https://www.coinglass.com/tv/zh/Binance_"+symbolx.name, '_blank');
 				})
 				
+				
+				$('#log').change(function() {
+				    if ($(this).prop('checked')) {
+				        console.log('被勾选了');
+				    } else {
+				        console.log('被取消了');
+				    }
+				});
 				// ！！！！慎用 赋值每个独一无二的id
 				// giveID()
 				
@@ -1198,6 +1212,7 @@
 			        ],
 					yAxis: [
 					    {
+							type: $('#log').prop('checked')?'log':"value",
 					        scale: true,
 							position: 'right',
 							// splitNumber: 14,
@@ -2074,6 +2089,15 @@
 			        if (aChange <= per) continue;
 			    			
 			        const preKlines = klines.slice(i - pre, i);
+					
+					// 【新增条件】30m：A的交易量必须 >= 前面20根任意一根的交易量
+					if (item == "30m" || item == "15m") {
+					    const pre20VolumeMax = Math.max(
+					        ...klines.slice(i - 20, i).map(k => k.volume)
+					    );
+					
+					    if (A.volume < pre20VolumeMax) continue;
+					}
 			    			
 			        //信号增强： A的收盘价大于前面任意一根的最高价================================
 			        const preHighMax = Math.max(...preKlines.map(k => k.close));

@@ -172,68 +172,25 @@
 			})
 			$("#chooseTime option[value=1m]").prop("selected", true);
 			//展示数量
-			// $("#numK").change(function(){
-			// 	const N = parseInt($(this).val());
-			// 	$('.chart-box').each(function(i, el) {
-			// 		var $chart=($(this).children(".chart-content"))[0];
-			// 		var chart = echarts.init($chart);
-			// 		if($(this).data("name")=="GAIBUSDT"){
-			// 			console.log(chart.getOption())
-			// 		}
-			// 		// console.log($('.chart-box').attr("id"))
-			// 		const chartData=chart.getOption()
-			// 		if(chartData){
-			// 			const dataCount = chartData.series[0].data.length;
-			// 			const start = dataCount> N ?100 - (N/dataCount*100):0;
-			// 			const end=100;
-			// 			chart.dispatchAction({ type:'dataZoom', start, end });
-			// 		}
-					
-			// 	});
-			// })
 			$("#numK").change(function(){
-			
-			    const N = parseInt($(this).val());
-			
-			    $('.chart-box').each(function(){
-			
-			        const chartDom =
-			            $(this).children(".chart-content")[0];
-			
-			        const chart =
-			            echarts.getInstanceByDom(chartDom);
-			
-			        // 没有ECharts实例
-			        // 说明这个图当前没进入加载区域
-			        if(!chart){
-			            return;
-			        }
-			
-			        const chartData = chart.getOption();
-			
-			        if(chartData &&
-			           chartData.series &&
-			           chartData.series[0]){
-			
-			            const dataCount =
-			                chartData.series[0].data.length;
-			
-			            const start =
-			                dataCount > N
-			                ? 100 - (N / dataCount * 100)
-			                : 0;
-			
-			            chart.dispatchAction({
-			                type:'dataZoom',
-			                start:start,
-			                end:100
-			            });
-			
-			        }
-			
-			    });
-			
-			});
+				const N = parseInt($(this).val());
+				$('.chart-box').each(function(i, el) {
+					var $chart=($(this).children(".chart-content"))[0];
+					var chart = echarts.init($chart);
+					if($(this).data("name")=="GAIBUSDT"){
+						console.log(chart.getOption())
+					}
+					// console.log($('.chart-box').attr("id"))
+					const chartData=chart.getOption()
+					if(chartData){
+						const dataCount = chartData.series[0].data.length;
+						const start = dataCount> N ?100 - (N/dataCount*100):0;
+						const end=100;
+						chart.dispatchAction({ type:'dataZoom', start, end });
+					}
+					
+				});
+			})
 			//生成刷新选项
 			var timerY;
 			$(document).on('change', '#refresh', function() {
@@ -306,15 +263,6 @@
 			//=======================================================================================================================================================
 			
 			
-			// 最多同时存在多少个 ECharts
-			const MAX_ACTIVE_CHARTS = 24;
-			
-			// 距离屏幕多少像素开始加载
-			const CHART_ROOT_MARGIN = '1200px';
-			
-			// 当前正在观察的 chart-box
-			let chartObserver = null;
-			
 			//重新获取所有永续合约
 			function getBinancePerpetualSymbolsSync() {
 			    var symbolsArray = []; // 初始化空数组用于存储结果
@@ -349,26 +297,6 @@
 			var allSymbolsArr = getBinancePerpetualSymbolsSync();
 			console.log(JSON.stringify(allSymbolsArr))
 			
-			
-			function clearAllCharts(){
-			    // 1. 清理 ECharts
-			    Object.values(charts).forEach(c => {
-			        if(c && c.instance){
-			            try{
-			                c.instance.dispose();
-			            }catch(e){}
-			        }
-			    });
-			
-			    // 2. 清空引用
-			    charts = {};
-			
-			    // 3. 清空 chartArr
-			    chartArr = [];
-			
-			    // 4. 删除 DOM
-			    $(".chart-box").remove();
-			}
 
    
 			//对象数组中的名称属性
@@ -381,10 +309,7 @@
 						arr[i].default=true;
 					}
 				}
-				// $(".chart-box").remove();
-				
-				clearAllCharts();
-				
+				$(".chart-box").remove();
 				newListings=arr.map(a=>a.symbol); console.log(newListings)
 				if (newListings.length > 0) {
 				    displayNewListings();
@@ -401,10 +326,7 @@
 						arr[i].default=true;
 					}
 				}
-				// $(".chart-box").remove();
-				
-				clearAllCharts();
-				
+				$(".chart-box").remove();
 				newListings=arr
 				if (newListings.length > 0) {
 				    displayNewListings();
@@ -421,10 +343,7 @@
 						arr[i].default=true;
 					}
 				}
-				// $(".chart-box").remove();
-				
-				clearAllCharts();
-				
+				$(".chart-box").remove();
 				newListings=arr
 				if (newListings.length > 0) {
 				    displayNewListings(msgKey);
@@ -433,105 +352,28 @@
 				}
 			}
 			// 显示新上线币种的图表
-			// function displayNewListings(msgKey) {
-			// 	// $("#menus").show();
-			//     $('#loadingIndicator').hide();
-			//     // $("#chooseTime option[value="+kedu+"]").prop("selected", true);
-			// 	if(chartArr.length){
-			// 		chartArr.forEach(c=>c.dispose());
-			// 		chartArr=[];
-			// 	}
-				
-			// 	var idxx=0;
-			// 	var timerX=setInterval(function(){
-			// 		if(idxx<newListings.length){
-			// 			addChart(newListings[idxx],msgKey)
-			// 			idxx++
-			// 		}else{
-			// 			clearInterval(timerX);
-			// 		}
-			// 	},2)
-			    
-			//     // 启动定时刷新
-			//     // startAutoRefresh();
-			// }
-			
-			//滚动加载
 			function displayNewListings(msgKey) {
+				// $("#menus").show();
 			    $('#loadingIndicator').hide();
-			
-			    // 清理之前的 ECharts
-			    if (chartArr.length) {
-			        chartArr.forEach(c => c.dispose());
-			        chartArr = [];
-			    }
-			
-			    let idxx = 0;
-			    const batchSize = 10;
-			    let loading = false;
-			
-			    // 加载下一批
-			    function loadMore() {
-			
-			        // 正在加载，避免重复触发
-			        if (loading) return;
-			
-			        // 已经全部加载
-			        if (idxx >= newListings.length) return;
-			
-			        loading = true;
-			
-			        const end = Math.min(
-			            idxx + batchSize,
-			            newListings.length
-			        );
-			
-			        // 一次加载20个
-			        const timerX = setInterval(function () {
-			
-			            if (idxx < end) {
-			
-			                addChart(
-			                    newListings[idxx],
-			                    msgKey
-			                );
-			
-			                idxx++;
-			
-			            } else {
-			
-			                clearInterval(timerX);
-			                loading = false;
-			
-			                console.log(
-			                    `已加载 ${idxx}/${newListings.length}`
-			                );
-			            }
-			
-			        }, 200);
-			    }
-			
-			    // 第一次先加载20个
-			    loadMore();
-			
-			    // 滚动监听
-			    $(window).off('scroll.lazyChart').on('scroll.lazyChart', function () {
-			
-			        // 距离页面底部还有多少像素
-			        const scrollTop = $(window).scrollTop();
-			        const windowHeight = $(window).height();
-			        const documentHeight = $(document).height();
-			
-			        const distanceToBottom =
-			            documentHeight - (scrollTop + windowHeight);
-			
-			        // 距离底部 1000px 时加载下一批
-			        if (distanceToBottom < 500) {
-			            loadMore();
-			        }
-			    });
+			    // $("#chooseTime option[value="+kedu+"]").prop("selected", true);
+				if(chartArr.length){
+					chartArr.forEach(c=>c.dispose());
+					chartArr=[];
+				}
+				
+				var idxx=0;
+				var timerX=setInterval(function(){
+					if(idxx<newListings.length){
+						addChart(newListings[idxx],msgKey)
+						idxx++
+					}else{
+						clearInterval(timerX);
+					}
+				},2)
+			    
+			    // 启动定时刷新
+			    // startAutoRefresh();
 			}
-			
 			
 			
 			//添加到每天历史储存 === 只有合约名称
