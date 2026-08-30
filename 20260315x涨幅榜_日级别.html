@@ -289,7 +289,7 @@
             font-size: 0.9rem;
         }
         
-        @media (max-width: 768px) {
+        @media screen and (max-width: 1000px) and (orientation: landscape) {
             .controls {
                 flex-direction: column;
                 align-items: center;
@@ -298,6 +298,18 @@
             .status-container {
                 grid-template-columns: 1fr;
             }
+        }
+        
+        @media screen and (max-width: 768px) {
+        	.controls {
+        	    flex-direction: column;
+        	    align-items: center;
+        	}
+        	
+        	.status-container {
+        	    grid-template-columns: 1fr;
+        	}
+        	
         }
 		input[type=checkbox]{
 			width:12px; height:12px; cursor:pointer;
@@ -313,11 +325,17 @@
 				height: 700px!important;
 				position: relative;
 		}
-		@media (max-width: 768px) {
+		@media screen and (max-width: 1000px) and (orientation: landscape) {
 		    .chart-box {
-		        height: 300px !important;
+		        height: 350px !important;
 		        width: 100% !important;  /* 可选：移动端宽度也改为全屏 */
 		    }
+		}
+		@media screen and (max-width: 768px) {
+			.chart-box {
+			    height: 300px !important;
+			    width: 100% !important;  /* 可选：移动端宽度也改为全屏 */
+			}
 		}
 		.funding{
 			position: absolute;
