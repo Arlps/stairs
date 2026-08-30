@@ -68,7 +68,7 @@
     }
   
     .chart-box {
-      height: 400px !important;
+      height: 300px !important;
     }
 	
 	#res {
@@ -77,6 +77,39 @@
 	  font-size: 14px;
 	  line-height: 1.5;
 	}
+  }
+  
+  /* 手机横屏 */
+  @media screen and (max-width: 1000px) and (orientation: landscape) {
+  
+      body {
+          display: flex !important;
+          flex-direction: column !important;
+      }
+  
+      .left-box {
+          width: 100% !important;
+          min-width: 0 !important;
+          max-width: none !important;
+          flex: none !important;
+      }
+  
+      .right-box {
+          width: 100% !important;
+          min-width: 0 !important;
+          max-width: none !important;
+          flex: none !important;
+      }
+	  .chart-box {
+	    height: 350px !important;
+	  }
+	  
+	  #res {
+	    width: 100%;
+	    border-collapse: collapse;
+	    font-size: 14px;
+	    line-height: 1.5;
+	  }
   }
 </style>
 </head>
