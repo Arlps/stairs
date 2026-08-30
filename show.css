@@ -210,6 +210,16 @@ a{color: yellow;
 		.chart-box.width50 {
 		  width: calc(49% - 10px) !important;
 		}
+		@media screen and (max-width: 1000px) and (orientation: landscape) {
+		    .chart-box.width50 {
+		      width: calc(95% - 4px) !important;
+		    }
+		}
+		@media screen and (max-width: 768px) {
+		    .chart-box.width50 {
+		     width: calc(95% - 4px) !important;
+		    }
+		}
 		
 		.msg-box{
 			    background: rgba(255, 255, 255, 0.2);
