@@ -27,19 +27,17 @@
 // 前方pre根K线中若有阳线，则A的涨幅必须大于它们之中最大的涨幅。
 // A之后的2根K线最低价不得低于A的开盘价。A之后两根K线若方向相反，各自涨跌幅绝对值均须小于A涨幅的1/4；若方向相同，两者累计涨跌幅绝对值须小于A涨幅的1/4。
 // A之后两根K线的各自振幅（最高减最低）均须小于A振幅的1.2倍。
+
 function x_start0(symbol, item, arr, num) {
 	// return;
-	if(symbol=="MMTUSDT"){
+	if(symbol=="DOGEUSDT"){
 		console.log(item+":"+arr.length+"根")
 	}
 
-	// if (!arr || arr.length < num) {
-	// 	return false;
-	// }
-
 	let pre = 10;
-	let per = 0.01;
+	let per = 0.01; let per2=0.4;
 	let vol2 = 1000000;
+
 	if (item == "1m") { pre = 10; per = 0.005; vol2 = 10000; }
 	if (item == "5m") { pre = 50; per = 0.005; vol2 = 10000; }
 	if (item == "15m") { pre = 20; per = 0.005; vol2 = 10000; }
@@ -50,124 +48,138 @@ function x_start0(symbol, item, arr, num) {
 	else if (item == "8h") { pre = 5; per = 0.02; vol2 = 2000000; }
 	else if (item == "12h") { pre = 5; per = 0.02; vol2 = 2000000; }
 	else if (item == "1d") { pre = 5; per = 0.02; vol2 = 2000000; }
-	else{ pre = 10; per = 0.01; vol2 = 500000; }
+	else { pre = 10; per = 0.01; vol2 = 500000; }
 
-	// num 只是 A 的候选区间，不包含 pre
-	const klines = arr.slice(-(num + pre + 2));
+	const hasNum = num !== undefined && num !== null;
 
-	// 至少需要：pre(前) + num(候选A) + 2(后)
-	if (klines.length < pre + num + 2) {
-		console.log("数量不足"+(num + pre + 2)+"："+symbol + " " + item + " " + klines.length)
-		return false;
+	let klines;
+	let startIndex;
+	let endIndex;
+
+	if (hasNum) {
+		// 有num：从arr末尾取pre+num+2根K线
+		const needCount = pre + num + 2;
+
+		if (!arr || arr.length < needCount) {
+			console.log("数量不足"+needCount+"："+symbol+" "+item+" "+(arr ? arr.length : 0));
+			return false;
+		}
+
+		klines = arr.slice(-needCount);
+
+		// A范围：排除前pre根和最后2根
+		startIndex = pre;
+		endIndex = pre + num;
+	} else {
+		// 没有num：整个arr参与检测
+		const needCount = pre + 1 + 2;
+
+		if (!arr || arr.length < needCount) {
+			console.log("数量不足"+needCount+"："+symbol+" "+item+" "+(arr ? arr.length : 0));
+			return false;
+		}
+
+		klines = arr;
+
+		// A范围：排除前pre根和最后2根
+		startIndex = pre;
+		endIndex = klines.length - 2;
 	}
-	
-	// A 的合法起始索引：从 pre 开始，到倒数第 2 根结束
-	for (let i = pre; i < pre + num; i++) {
-		let enhance="";
-	    const A = klines[i];
-		
-		if(symbol=="SKYUSDT"&& item=="1d" && A.open==0.04961){
-			console.log(1)
-		}
-		
-		
-	    // A必须是阳线（上涨K线）======================
-	    if (A.close <= A.open) continue;
-		
-		
 
-				
-	    // 取消：A 的成交额必须大于等于 vol2 =========================
-	    // if (A.quoteVolume < vol2) continue;
-				
-	    // A 的涨幅必须大于 per=======================
-	    const aChange = (A.close - A.open) / A.open;
-	    if (aChange <= per) continue;
-				
-	    const preKlines = klines.slice(i - pre, i);
+	//记录第一条A的时间
+	if(symbol=="DOGEUSDT"){
+		console.log(mmddhhmm(klines[0].time))
+	}
+
+	// 遍历所有符合范围的A
+	for (let i = startIndex; i < endIndex; i++) {
+		let enhance = "";
+		const A = klines[i];
 		
-		// 【新增条件】30m：A的交易量必须 >= 前面20根任意一根的交易量
-		if (item == "30m" || item == "15m") {
-		    const pre20VolumeMax = Math.max(
-		        ...klines.slice(i - 20, i).map(k => k.volume)
-		    );
-		
-		    if (A.volume < pre20VolumeMax) continue;
+		//用户验证
+		if(symbol=="MOVRUSDT" && item=="4h"){
+			console.log(1);
+			mmddhhmm(A.time)
 		}
-				
-	    // 5m/15m的前提下  A的最高价大于前面任意一根的最高价================================
-		// if(item=="5m" || item=="15m"){
-		// 	const preHighMax = Math.max(...preKlines.map(k => k.high));
-		// 	if (A.high <= preHighMax) continue;
+
+		// A必须是阳线
+		if (A.close <= A.open) continue;
+
+		// A涨幅必须大于per
+		const aChange = (A.close - A.open) / A.open;
+		if (aChange <= per || aChange>=per2) continue;
+
+		// A之前的pre根K线
+		const preKlines = klines.slice(i - pre, i);
+
+		// 15m/30m：A成交量必须大于等于前20根最大成交量
+		if (item == "30m" || item == "15m") {
+			const pre20VolumeMax = Math.max(
+				...klines.slice(i - 20, i).map(k => k.volume)
+			);
+
+			if (A.volume < pre20VolumeMax) continue;
+		}
+
+		// A收盘价大于等于前面pre根K线最高收盘价，增加增强标记
+		// const preHighMax = Math.max(...preKlines.map(k => k.close));
+		// if (A.close >= preHighMax) {
+		// 	enhance = "+";
 		// }
 		
-		// 增强 突破前期
-		// 	const preHighMax = Math.max(...preKlines.map(k => k.high));
-		// 	if (A.close = preHighMax) continue;
 		
-		
-		//信号增强： A的收盘价大于前面任意一根的最高价================================
-		const preHighMax = Math.max(...preKlines.map(k => k.close));
-		if (A.close >= preHighMax){
-			enhance="+";
+		//A的收盘价大于A前5条K线每一条的收盘价
+		if (i >= 5) {
+			const prev5Klines = klines.slice(i - 5, i);
+			const allPrevCloseLess = prev5Klines.every(k => k.close < A.close);
+			if (!allPrevCloseLess) continue;
+		} else {
+			continue;
 		}
-	   
-		
-	    // 前面 pre 根中没有阳线，则自动通过此条件==============================
-	    let riseFlag = false;
-	    let hasUpKline = false;
-	    for (const prev of preKlines) {
-	        if (prev.close > prev.open) {
-	            hasUpKline = true;
-	            const prevChange = (prev.close - prev.open) / prev.open;
-	            if (aChange > prevChange) {
-	                riseFlag = true;
-	                break;
-	            }
-	        }
-	    }
-	    if (hasUpKline && !riseFlag) continue;
-				
-	
-		//A 之后的两根K线=================================================
-	    const aRange = A.high - A.low;
-	    const next1 = klines[i + 1];
-	    const next2 = klines[i + 2];
-		
-		// 【新增条件1】A之后的两根K线，最低价不小于A的开盘价
+
+		// A之后的两根K线
+		const aRange = A.high - A.low;
+		const next1 = klines[i + 1];
+		const next2 = klines[i + 2];
+
+		// A之后两根K线的最低价不能低于A开盘价
 		if (next1.low < A.open) continue;
 		if (next2.low < A.open) continue;
-				
-	    const n1Change = (next1.close - next1.open) / next1.open;
-	    const n2Change = (next2.close - next2.open) / next2.open;
-				
-	    // 判断两根K线的方向
-	    const n1IsUp = n1Change > 0;
-	    const n2IsUp = n2Change > 0;
-	    
-	    if (n1IsUp !== n2IsUp) {
-	        // 一涨一跌：每根绝对值分别小于 A涨幅的 1/4
-	        if (Math.abs(n1Change) >= aChange / 4) continue;
-	        if (Math.abs(n2Change) >= aChange / 4) continue;
-	    } else {
-	        // 两连涨或两连跌：累计涨跌幅绝对值小于 A涨幅的 1/4
-	        const totalChange = Math.abs(n1Change + n2Change);
-	        if (totalChange >= aChange / 4) continue;
-	    }
-				
-	    //A 之后的两根K线，每根的高低点范围必须小于 A 范围的 1.2 倍=======================
-	    const n1Range = next1.high - next1.low;
-	    const n2Range = next2.high - next2.low;
-	    if (n1Range >= aRange * 1.2) continue;
-	    if (n2Range >= aRange * 1.2) continue;
 
-		collect_signal( symbol, item, `0启动`+enhance, A.time);
-			
+		const n1Change = (next1.close - next1.open) / next1.open;
+		const n2Change = (next2.close - next2.open) / next2.open;
+
+		// 判断两根K线方向
+		const n1IsUp = n1Change > 0;
+		const n2IsUp = n2Change > 0;
+
+		if (n1IsUp !== n2IsUp) {
+			// 一涨一跌：每根绝对涨跌幅小于A涨幅的1/4
+			if (Math.abs(n1Change) >= aChange / 4) continue;
+			if (Math.abs(n2Change) >= aChange / 4) continue;
+		} else {
+			// 两连涨或两连跌：累计涨跌幅绝对值小于A涨幅的1/4
+			const totalChange = Math.abs(n1Change + n2Change);
+
+			if (totalChange >= aChange / 4) continue;
+		}
+
+		// A之后两根K线振幅必须小于A振幅的1.2倍
+		const n1Range = next1.high - next1.low;
+		const n2Range = next2.high - next2.low;
+
+		if (n1Range >= aRange * 1.2) continue;
+		if (n2Range >= aRange * 1.2) continue;
+
+		// 触发启动信号
+		collect_signal(symbol, item, `stairs${enhance}`, A.time);
+
 		return true;
 	}
 
 	return false;
 }
+
 
 
 
@@ -475,7 +487,7 @@ function x_rocket_1m(symbol, item, arr) {
         if (!condition4) continue;
 
         // --- 所有条件满足，触发信号 ---
-        collect_signal(symbol, item, "rocket" + Ravevol.toFixed(2), A.time);
+        collect_signal(symbol, item, "rrr-" + Ravevol.toFixed(2), A.time);
         return true;
     }
 
@@ -634,6 +646,127 @@ function bear(symbol, item, arr, num) {
 	return false; // 未找到符合条件的信号
 }
 
+
+//===============================================================================A放量上涨B缩量停滞
+function x_AB(symbol, item, arr, num) {
+  let pre = 10;
+  let per = 5; // %
+  let xnum=10;
+  if (item == "1h") { pre= 20; xnum=30 }
+  else if (item == "2h") { pre= 10; xnum=20 ; per=3;  }
+  else if (item == "4h") { pre= 10; xnum=20;  per=5 }
+  else if (item == "8h") { pre= 10; xnum= 10; per=5 }
+  else if (item == "12h") { pre= 10; xnum= 10; per=5 }
+  else if (item == "1d") { pre= 10; xnum= 10 ; per=5 }
+  else if (item == "1w") { pre=5; xnum= 5; per=5 }
+  else{}
+  // 处理 num 参数，未传参则默认为 10
+  if (num === undefined || num === null) {
+    num = xnum;
+  }
+
+  // 数据量不足：需要最后 num 根 + pre 根（用于比较）+ 至少 1 根后续下跌 K 线
+  const requiredMin = num + pre + 1;
+  if (!Array.isArray(arr) || arr.length < requiredMin) {
+    return false;
+  }
+
+  // 取最后 num 根作为检测对象（从倒数第 num+1 到倒数第 2，因为最后一根要留给 B）
+  // 注意：arr 是按时间升序排列的，最后一项是最新的
+  const totalLen = arr.length;
+  const checkStart = totalLen - num - 1; // 从倒数第 num+1 根开始检查（留最后一根给可能的 B）
+  const checkEnd = totalLen - 2;         // 到倒数第 2 根为止（倒数第一根留给 B）
+
+  for (let i = checkStart; i <= checkEnd; i++) {
+    const A = arr[i];
+    const B = arr[i + 1];
+
+    // 计算 A 的涨幅（百分比）
+    const aOpen = parseFloat(A.open);
+    const aClose = parseFloat(A.close);
+    const aHigh = parseFloat(A.high);
+    const aLow = parseFloat(A.low);
+    const aVol = parseFloat(A.volume);
+
+    // A 必须是阳线（上涨）
+    if (aClose <= aOpen) continue;
+
+    const aPct = ((aClose - aOpen) / aOpen) * 100;
+
+    // A 涨幅必须大于 per%
+    if (aPct <= per) continue;
+	
+	// --- 新增条件：A 的上影线比例小于整体 K 线的 0.3 ---
+	// 对于阳线：上影线 = 最高价 - 收盘价
+	const upperShadow = aHigh - aClose;
+	const totalRange = aHigh - aLow;
+	
+	if (totalRange <= 0) continue;
+	
+	const shadowRatio = upperShadow / totalRange;
+	
+	if (shadowRatio >= 0.3) continue;
+
+    // 取 A 之前的 pre 根 K 线
+    const preStart = i - pre;
+    if (preStart < 0) continue; // 前面不够 pre 根
+
+    let preMaxPct = -Infinity;
+    let preMaxVol = -Infinity;
+    let preVolSum = 0;
+
+    for (let j = preStart; j < i; j++) {
+      const preItem = arr[j];
+      const preOpen = parseFloat(preItem.open);
+      const preClose = parseFloat(preItem.close);
+      const preVol = parseFloat(preItem.volume);
+      const prePct = ((preClose - preOpen) / preOpen) * 100;
+
+      if (prePct > preMaxPct) preMaxPct = prePct;
+      if (preVol > preMaxVol) preMaxVol = preVol;
+      preVolSum += preVol;
+    }
+
+    const preAvgVol = preVolSum / pre;
+
+    // 条件1：A 的涨幅 > pre 中每一根的涨幅（即大于 preMaxPct）
+    //        A 的成交量 > pre 中每一根的成交量（即大于 preMaxVol）
+    //        A 的成交量 > pre 平均成交量的 3 倍
+    if (aPct <= preMaxPct || aVol <= preMaxVol || aVol <= preAvgVol * 3) {
+      continue;
+    }
+
+    // 条件2：B 是下跌 K 线
+    const bOpen = parseFloat(B.open);
+    const bClose = parseFloat(B.close);
+    const bVol = parseFloat(B.volume);
+
+    if (bClose >= bOpen) continue; // B 不是阴线
+
+    const bPctAbs = Math.abs(((bClose - bOpen) / bOpen) * 100);
+
+    // B 的跌幅绝对值 < A 涨幅的 1/4
+   
+    if (bPctAbs >= aPct / 4 ) {
+      continue;
+    }
+	
+	 // 且 B 的成交量 < A 成交量的一半
+	// if (bVol >= aVol / 2) {
+	//   continue;
+	// }
+	
+
+    // 所有条件满足，触发信号
+    collect_signal(symbol, item, "AB", A.time);
+    return true;
+  }
+
+  // 遍历完都没找到符合条件的
+  return false;
+}
+
+
 //=====================================================================================连续上涨==
 function x_bow(symbol, item, arr, num) {
     // 检查数据量是否足够
@@ -641,6 +774,18 @@ function x_bow(symbol, item, arr, num) {
         console.log("x_bow数据不足 " + symbol + " " + item);
         return false;
     }
+	
+	let xnum=8;
+	if (item == "1m") {xnum=8 }
+	else if (item == "5m") {xnum=8 }
+	else if (item == "15m") {xnum=8 }
+	else if (item == "30m") {xnum=8 }
+	else if (item == "1h") {xnum=8 }
+	else if (item == "2h") {xnum=6  }
+	else if (item == "4h") { xnum=6}
+	else if (item == "8h") {xnum=5}
+	else if (item == "12h") { xnum=5}
+	else if (item == "1d") { xnum=5}
 
     // 只检测最后 num 根K线
     const startIndex = arr.length - num;
@@ -661,7 +806,7 @@ function x_bow(symbol, item, arr, num) {
             currentStreak++;
             
             // 如果连续上涨达到至少8根，检查成交量条件
-            if (currentStreak >= 8) {
+            if (currentStreak >= xnum) {
                 const n = currentStreak;  // M的K线数量
                 
                 // 检查M之前是否有足够的K线（至少n根）
@@ -670,24 +815,27 @@ function x_bow(symbol, item, arr, num) {
                     continue;
                 }
                 
-                // 计算M的成交量之和
-                let mVolumeSum = 0;
-                for (let j = streakStartIndex; j <= i; j++) {
-                    mVolumeSum += arr[j].quoteVolume;
-                }
+      //           // 计算M的成交量之和
+      //           let mVolumeSum = 0;
+      //           for (let j = streakStartIndex; j <= i; j++) {
+      //               mVolumeSum += arr[j].quoteVolume;
+      //           }
                 
-                // 计算M的第一根的前n根成交量之和
-                let prevVolumeSum = 0;
-                for (let j = streakStartIndex - n; j < streakStartIndex; j++) {
-                    prevVolumeSum += arr[j].quoteVolume;
-                }
+      //           // 计算M的第一根的前n根成交量之和
+      //           let prevVolumeSum = 0;
+      //           for (let j = streakStartIndex - n; j < streakStartIndex; j++) {
+      //               prevVolumeSum += arr[j].quoteVolume;
+      //           }
                 
-                // 条件2：M的成交量之和 > 前n根成交量之和
-                if (mVolumeSum > prevVolumeSum) {
-                    const M_start_time = arr[streakStartIndex].time;
-                    collect_signal(symbol, item, "M", M_start_time);
-                    return true;
-                }
+      //           // 条件2：M的成交量之和 > 前n根成交量之和
+      //           if (mVolumeSum < prevVolumeSum) {
+					 // continue;
+      //           }
+				
+				// const M_start_time = arr[streakStartIndex].time;
+				collect_signal(symbol, item, "M", arr[i].time);
+				return true;
+				
             }
         } else {
             // 遇到非上涨K线，重置计数
@@ -806,6 +954,274 @@ function breakbox(symbol, item, arr, num = 10) {
 
 
 
+//倍量长上影线
+function xUpStick(symbol, item, arr, num) {
+    const pre = 100;
+    const per = 0.01; // 1%
+    const x = 0.7;
+    
+    // 如果没有传入num，则取arr整体长度减去pre
+    if (num === undefined) {
+        num = arr.length - pre;
+    }
+    
+    // 数据量不够的情况
+    if (!arr || arr.length < pre + num || num <= 0) {
+        return false;
+    }
+    
+    // 从倒数第num根开始检查到最后
+    for (let i = arr.length - num; i < arr.length; i++) {
+        const kLine = arr[i];
+        
+        // 判断是否为上涨K线
+        if (kLine.close > kLine.open) {
+            // 计算涨幅
+            const changePercent = (kLine.close - kLine.open) / kLine.open;
+            
+            // 条件1：涨幅 >= per (1%)
+            if (changePercent >= per) {
+                // 整根K线的范围
+                const totalRange = kLine.high - kLine.low;
+                // 上影线长度
+                const upperShadowLength = kLine.high - kLine.close;
+                
+                // 条件1续：上影线占整根K线的比例 >= x (0.7)
+                if (totalRange > 0 && upperShadowLength / totalRange >= x) {
+                    // 计算前pre根成交量的平均值
+                    let totalVolume = 0;
+                    const startIndex = i - pre;
+                    for (let j = startIndex; j < i; j++) {
+                        totalVolume += arr[j].volume;
+                    }
+                    const avgVolume = totalVolume / pre;
+                    
+                    // 条件2：成交量是前pre根平均值3倍以上
+                    if (avgVolume > 0 && kLine.volume >= avgVolume * 3) {
+                        collect_signal(symbol, item, "ups", kLine.time);
+                        return true;
+                    }
+                }
+            }
+        }
+    }
+    
+    return false;
+}
+
+
+
+
+// ==========================5m启动横盘不跌破
+function xUpRight(symbol, item, arr, num) {
+	let pre = 50;
+	let after=10;
+	let per = 0.04;
+	
+	if (item == "1m") { pre= 50; per = 0.02; after=10 }
+	else if (item == "5m") { pre= 50; per=0.04; after=10 }
+	else if (item == "15m") { pre= 20; per=0.04; after=10 }
+	else{}
+
+	// num不传则检查整个arr
+	if (num === undefined) num = arr.length;
+
+	if (!arr || arr.length < pre + 2 + pre) {
+		return false;
+	}
+
+	// 候选M/A必须位于最后num根范围内
+	const start = Math.max(0, arr.length - num);
+
+	// 单根K线涨幅
+	function getPer(k) {
+		if (!k || k.open <= 0) return -Infinity;
+		return (k.close - k.open) / k.open;
+	}
+
+	// 检查M/A后面的10根K线
+	function checkAfter(index, basePrice, basePer) {
+		if (index + after >= arr.length) return false;
+
+		for (let i = index + 1; i <= index + after; i++) {
+			const k = arr[i];
+
+			// 最低价不能低于M第一根K线开盘价/A开盘价
+			if (k.low < basePrice) {
+				return false;
+			}
+
+			// 每根K线涨幅必须小于M/A整体涨幅
+			if (getPer(k) >= basePer) {
+				return false;
+			}
+		}
+
+		return true;
+	}
+
+	// 检查M/A最后收盘价是否突破前面10根K线最高价
+	function checkBreakout(firstIndex, lastIndex) {
+		// 前面必须有10根K线
+		if (firstIndex < pre) return false;
+
+		let maxHigh = -Infinity;
+
+		for (let i = firstIndex - pre; i < firstIndex; i++) {
+			if (arr[i].high > maxHigh) {
+				maxHigh = arr[i].high;
+			}
+		}
+
+		// M/A最后一根收盘价必须高于前10根最高价
+		return arr[lastIndex].close > maxHigh;
+	}
+
+	// 1. 优先寻找M：至少两根连续上涨K线
+	for (let i = start; i < arr.length - pre - 1; i++) {
+		if (getPer(arr[i]) <= 0) continue;
+
+		let j = i;
+
+		// 找连续上涨K线
+		while (j + 1 < arr.length && getPer(arr[j + 1]) > 0) {
+			j++;
+		}
+
+		// 至少两根
+		if (j - i + 1 >= 2) {
+			const Mopen = arr[i].open;
+			const Mclose = arr[j].close;
+			const Mper = (Mclose - Mopen) / Mopen;
+
+			// M整体涨幅 > 4%
+			if (Mper > per) {
+
+				// M最后收盘价突破前10根最高价
+				if (checkBreakout(i, j)) {
+
+					// M后10根K线满足条件
+					if (checkAfter(j, Mopen, Mper)) {
+						collect_signal(
+							symbol,
+							item,
+							"UpRight",
+							arr[i].time
+						);
+						return true;
+					}
+				}
+			}
+		}
+
+		// 跳过已经检查过的连续上涨区间
+		i = j;
+	}
+
+	// 2. 没有符合条件的M，再寻找单根A
+	for (let i = start; i < arr.length - pre; i++) {
+		const A = arr[i];
+		const Aper = getPer(A);
+
+		// A涨幅 > 4%
+		if (Aper <= per) continue;
+
+		// A收盘价突破前10根最高价
+		if (!checkBreakout(i, i)) continue;
+
+		// A后10根K线满足条件
+		if (checkAfter(i, A.open, Aper)) {
+			collect_signal(
+				symbol,
+				item,
+				"UpRight",
+				A.time
+			);
+			return true;
+		}
+	}
+
+	return false;
+}
+
+
+
+function x1mRocket(symbol, item, arr, num) {
+    const pre = 100;
+    const per = 0.02; // 2%转换为小数
+	const ratio=20;
+    
+    // 处理num参数：未传入则默认使用arr.length - pre
+    if (num === undefined || num === null) {
+        num = arr.length - pre;
+    }
+    
+    // 数据量不足检查
+    if (arr.length < pre + num || num <= 0) {
+        return false;
+    }
+    
+    // 只检查最后num根K线
+    const startIndex = arr.length - num;
+    
+    for (let i = startIndex; i < arr.length; i++) {
+        const A = arr[i];
+        
+        // 条件1：上涨K线且涨幅 >= per (2%)
+        // 注意：open > close为下跌，这里需要上涨
+        if (A.close <= A.open) {
+            continue; // 不是上涨K线，跳过
+        }
+        
+        const changePercent = (A.close - A.open) / A.open;
+        if (changePercent < per) {
+            continue; // 涨幅不足2%，跳过
+        }
+        
+        // 获取前pre根K线
+        const preStartIndex = i - pre;
+        if (preStartIndex < 0) {
+            continue; // 前面数据不足pre根，跳过
+        }
+        
+        let volumeConditionMet = true;
+        let maxPrice = 0;
+        
+        // 遍历前pre根K线
+        for (let j = preStartIndex; j < i; j++) {
+            const prevCandle = arr[j];
+            
+            // 记录最高价
+            if (prevCandle.high > maxPrice) {
+                maxPrice = prevCandle.high;
+            }
+            
+            // 条件2：A的成交量大于前pre根每一根的成交量的50倍
+            // 处理成交量可能为0的情况
+            const threshold = prevCandle.volume === 0 ? 0 : prevCandle.volume * ratio;
+            if (A.volume <= threshold) {
+                volumeConditionMet = false;
+                break;
+            }
+        }
+        
+        if (!volumeConditionMet) {
+            continue; // 成交量条件不满足，跳过
+        }
+        
+        // 条件3：A的收盘价大于pre根中的最高价
+        if (A.close <= maxPrice) {
+            continue; // 收盘价不大于前pre根最高价，跳过
+        }
+        
+        // 所有条件满足，执行信号收集
+        collect_signal(symbol, item, "RRR", A.time);
+        return true;
+    }
+    
+    // 没有找到符合条件的K线
+    return false;
+}
 
 //单根下跌承接
 function bear1(symbol, item, arr, num) {
@@ -1039,4 +1455,291 @@ function x_mountain(symbol, item, arr, num) {
   // 没找到符合条件的区间
   return false;
 }
+
+
+
+
+//////////==================================================双层结构
+function x2layers(symbol, item, arr, num) {
+	if (!arr || !Array.isArray(arr) || arr.length < 80) return false;
+
+	num = num || arr.length;
+	if (arr.length < 80) return false;
+
+	var errorPer = 0.001; // 千分之一误差
+	var minGap = 5; // 峰顶/谷底至少间隔5根K线
+	var minM = 50;
+	var minN = 20;
+
+	// M中的峰顶：必须接触或超过x，允许千分之一误差
+	function isPeak(i, x) {
+		return arr[i].high >= x * (1 - errorPer);
+	}
+
+	// N中的谷底：必须接触或跌破x，允许千分之一误差
+	function isBottom(i, x) {
+		return arr[i].low <= x * (1 + errorPer);
+	}
+
+	// M区域：收盘基本在x下方
+	// 当前K线可以突破x，但当前或下一根收盘必须回到x下方
+	function isM(i, x) {
+		if (i >= arr.length) return false;
+
+		if (arr[i].close < x) return true;
+
+		if (i + 1 < arr.length && arr[i + 1].close < x) return true;
+
+		return false;
+	}
+
+	// N区域：收盘基本在x上方
+	// 当前K线可以跌破x，但当前或下一根收盘必须回到x上方
+	function isN(i, x) {
+		if (i >= arr.length) return false;
+
+		if (arr[i].close > x) return true;
+
+		if (i + 1 < arr.length && arr[i + 1].close > x) return true;
+
+		return false;
+	}
+
+	// 真正进入N：收盘正式站上x
+	function enterN(i, x) {
+		return arr[i].close > x;
+	}
+
+	// 生成x候选价格
+	var xList = [];
+
+	for (var i = 0; i < arr.length; i++) {
+		xList.push(arr[i].high);
+		xList.push(arr[i].low);
+		xList.push(arr[i].close);
+	}
+
+	// 从后往前优先寻找较新的结构
+	for (var xi = xList.length - 1; xi >= 0; xi--) {
+
+		var x = xList[xi];
+
+		if (!x || x <= 0) continue;
+
+		// =========================
+		// 1. 找M第一次接触x
+		// =========================
+		var firstContact = -1;
+
+		for (var i = 0; i < arr.length; i++) {
+			if (isPeak(i, x) && isM(i, x)) {
+				firstContact = i;
+				break;
+			}
+		}
+
+		if (firstContact < 0) continue;
+
+		// =========================
+		// 2. 找MN正式切换位置
+		// =========================
+		var nStart = -1;
+
+		for (var i = firstContact + 1; i < arr.length; i++) {
+
+			if (!enterN(i, x)) continue;
+
+			// 前一根仍然属于M
+			if (!isM(i - 1, x)) continue;
+
+			nStart = i;
+			break;
+		}
+
+		if (nStart < 0) continue;
+
+		// M数量：第一次接触x -> MN正式切换
+		var mCount = nStart - firstContact;
+
+		if (mCount <= minM) continue;
+
+		// =========================
+		// 3. 找N最后一次接触x
+		// =========================
+		var lastContact = -1;
+
+		for (var i = nStart; i < arr.length; i++) {
+
+			if (isBottom(i, x) && isN(i, x)) {
+				lastContact = i;
+			}
+		}
+
+		if (lastContact < 0) continue;
+
+		// N数量：MN正式切换 -> 最后一次接触x
+		var nCount = lastContact - nStart + 1;
+
+		if (nCount <= minN) continue;
+
+		// =========================
+		// 4. 检查M整体结构
+		// =========================
+		var mValid = true;
+
+		for (var i = firstContact; i < nStart; i++) {
+			if (!isM(i, x)) {
+				mValid = false;
+				break;
+			}
+		}
+
+		if (!mValid) continue;
+
+		// =========================
+		// 5. 检查N整体结构
+		// =========================
+		var nValid = true;
+
+		for (var i = nStart; i <= lastContact; i++) {
+			if (!isN(i, x)) {
+				nValid = false;
+				break;
+			}
+		}
+
+		if (!nValid) continue;
+
+		// =========================
+		// 6. M中寻找峰顶
+		// =========================
+		var peaks = [];
+
+		for (var i = firstContact; i < nStart; i++) {
+
+			if (!isPeak(i, x)) continue;
+
+			if (peaks.length == 0) {
+				peaks.push({
+					index: i,
+					time: arr[i].time,
+					price: arr[i].high
+				});
+				continue;
+			}
+
+			var last = peaks[peaks.length - 1];
+
+			// 距离不超过4根，视为同一个峰顶
+			if (i - last.index < minGap) {
+
+				// 同一峰顶中保留最高的K线
+				if (arr[i].high > last.price) {
+					peaks[peaks.length - 1] = {
+						index: i,
+						time: arr[i].time,
+						price: arr[i].high
+					};
+				}
+
+			} else {
+
+				peaks.push({
+					index: i,
+					time: arr[i].time,
+					price: arr[i].high
+				});
+			}
+		}
+
+		if (peaks.length < 3) continue;
+
+		// =========================
+		// 7. N中寻找谷底
+		// =========================
+		var bottoms = [];
+
+		for (var i = nStart; i <= lastContact; i++) {
+
+			if (!isBottom(i, x)) continue;
+
+			if (bottoms.length == 0) {
+				bottoms.push({
+					index: i,
+					time: arr[i].time,
+					price: arr[i].low
+				});
+				continue;
+			}
+
+			var last = bottoms[bottoms.length - 1];
+
+			// 距离不超过4根，视为同一个谷底
+			if (i - last.index < minGap) {
+
+				// 同一谷底中保留最低的K线
+				if (arr[i].low < last.price) {
+					bottoms[bottoms.length - 1] = {
+						index: i,
+						time: arr[i].time,
+						price: arr[i].low
+					};
+				}
+
+			} else {
+
+				bottoms.push({
+					index: i,
+					time: arr[i].time,
+					price: arr[i].low
+				});
+			}
+		}
+
+		if (bottoms.length < 2) continue;
+
+		// =========================
+		// 8. 条件全部成立
+		// =========================
+		// A.time = MN正式切换的K线time
+		var A = arr[nStart];
+
+		collect_signal(
+			symbol,
+			item,
+			x + "_" + mCount + "_" + nCount,
+			A.time
+		);
+
+		return true;
+	}
+
+	return false;
+}
+
+
+
+
+
+
+//============================================================突破警报
+// async function checkBreak() {
+// 	const dbx = JSON.parse(localStorage.getItem('DBX'));
+// 	const breakArr = [];
+// 	for (let symbol in dbx) {
+// 		let alertPrice = parseFloat(dbx[symbol].alert);
+// 		if (!alertPrice) continue;
+    
+// 		$.getJSON(`https://fapi.binance.com/fapi/v1/ticker/price?symbol=${symbol}`, data => {
+// 			let price = parseFloat(data.price);
+// 			if (price > alertPrice) breakArr.push(symbol);
+// 		});
+// 	}
+// 	console.log(breakArr);
+// }
+
+// checkBreak();
+// setInterval(checkBreak, 60000);
+
+
 

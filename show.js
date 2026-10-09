@@ -41,11 +41,7 @@
 			
 		   })
 		   
-		   //全局数据
-		   let charts = {};
-		   let newListings = [];
-		   var kedu="1d";
-		   var chartArr=[];
+		   
 		   
 		   
 		   //设置本地存储
@@ -66,6 +62,20 @@
 		   				setLocal("priceAlarmList",[]);
 		   	// console.log(getLocal(dataX))
 		   }
+		   
+		   if(!getLocal("DBX")){
+		   		setLocal("DBX",{});
+		   }
+		   
+		   //全局数据
+		   let charts = {};
+		   let newListings = [];
+		   var kedu="1d";
+		   var chartArr=[];
+		   let chartBoxIndex = 0;
+		   
+		   let DBX=getLocal("DBX");//getLocal("DBX")["哈基米USDT"]
+		   
 		   //工具栏结构
 		   var $menus=$('<div id="menus" class="sticky" style=""></div>');
 		   var $menus=$(
@@ -335,6 +345,14 @@
 			            }
 						// symbolsArray=symbolsArray.filter(Symbol=>Symbol!=="GAIBUSDT");
 						// console.log(symbolsArray)
+						console.log(111);
+						// let DB=getLocal("DBX");
+						for (var i = 0; i < symbolsArray.length; i++) {
+							if(!DBX[symbolsArray[i]]){
+								DBX[symbolsArray[i]]={}
+							}
+						}
+						setLocal("DBX",DBX)
 			        },
 			        error: function(xhr, status, error) {
 			            console.error('请求失败:', status, error);
@@ -347,7 +365,7 @@
 			
 			// 调用函数并输出结果
 			var allSymbolsArr = getBinancePerpetualSymbolsSync();
-			console.log(JSON.stringify(allSymbolsArr))
+			// console.log(JSON.stringify(allSymbolsArr))
 			
 			
 			function clearAllCharts(){
@@ -365,6 +383,8 @@
 			
 			    // 3. 清空 chartArr
 			    chartArr = [];
+				
+				 chartBoxIndex = 0;
 			
 			    // 4. 删除 DOM
 			    $(".chart-box").remove();
@@ -503,12 +523,12 @@
 			                clearInterval(timerX);
 			                loading = false;
 			
-			                console.log(
-			                    `已加载 ${idxx}/${newListings.length}`
-			                );
+			                // console.log(
+			                //     `已加载 ${idxx}/${newListings.length}`
+			                // );
 			            }
 			
-			        }, 200);
+			        }, 50);
 			    }
 			
 			    // 第一次先加载20个
@@ -645,6 +665,24 @@
 				// }
 			});
 			
+			//添加到定点复盘储存-阶梯
+			$(".chart-container").on("click", ".chart-box .stairs", function() {
+				const name = $(this).siblings('.symbol-name').text();
+				let $review= getLocal("AnalysisStairs");
+				// if ($review.findIndex(trade => trade.name == name) > -1) {
+				//   $("#tipsBox").html("复盘数据已经存在").addClass("tips-fail").fadeIn(300).delay(1000).fadeOut(1000);
+				// }else{
+					$review.push({
+						name:name,
+						time:"",
+						tip:"",
+						id:randomID()
+					})
+					setLocal("AnalysisStairs",$review);
+					$("#tipsBox").html(`已添加 "${name}" 到阶梯复盘数据`).removeClass("tips-fail").fadeIn(300).delay(1000).fadeOut(1000);
+				// }
+			});
+			
 			//添加到定点复盘储存-signal
 			$(".chart-container").on("click", ".chart-box .signal", function() {
 				const name = $(this).siblings('.symbol-name').text();
@@ -695,19 +733,39 @@
 			
 			
 			//添加到定点复盘储存-stairs
-			$(".chart-container").on("click", ".chart-box .stairs", function() {
+			$(".chart-container").on("click", ".chart-box .future", function() {
 				const name = $(this).siblings('.symbol-name').text();
-				let $review= getLocal("AnalysisStairs");
+				let $review= getLocal("AnalysisFuture");
 					$review.push({
 						name:name,
 						time:"",
 						tip:"",
 						id:randomID()
 					})
-					setLocal("AnalysisStairs",$review);
-					$("#tipsBox").html(`已添加 "${name}" 到结构复盘数据`).removeClass("tips-fail").fadeIn(300).delay(1000).fadeOut(1000);
+					setLocal("AnalysisFuture",$review);
+					$("#tipsBox").html(`已添加 "${name}" 到候选数据`).removeClass("tips-fail").fadeIn(300).delay(1000).fadeOut(1000);
 				// }
 			});
+			
+			
+			
+			//操作数据库变量
+			$(".chart-container").on("change", ".chart-box .db-input", function() {
+				// let db=getLocal("DBX");
+				const symbol = $(this).parents('.chart-box').data("name");
+				const key=$(this).data("key");
+				flag = $(this).prop('checked');
+				DBX[symbol][key]=flag;
+				setLocal("DBX",DBX)
+			})
+			
+			
+			
+			
+			
+			
+			
+			
 			//获取实时日期 => 20260124
 			function getToday() {
 			  const now = new Date();
@@ -743,6 +801,7 @@
 			
 			// 添加图表函数
 			function addChart(symbol,msgKey) {
+				const boxIndex = ++chartBoxIndex;
 				let time;
 				let thisInterval;
 				let signal;
@@ -781,27 +840,28 @@
 				
 			    const chartBox = $(`
 			        <div class="chart-box ${widthClass}" id="${chartId}" data-name="${symbol}" data-info="${info}">
+						<span class="chart-box-index">${boxIndex}</span>
 			            <div class="chart-header">
 			                <div class="symbol-info show-pc">
-								
 			                    <span class="symbol-name" data-symbol="${symbol}">${symbol}</span>
 								<a class="coinglass" href="https://www.coinglass.com/tv/zh/Binance_${symbol}" target="_blank">></a>
 								<span class="position">${positionArr}</span>
+								
 								<input type="checkbox" name="save-${symbol}" class="save" data-info="${info}" />
 								<span class="label2">日</span>
+								
 								<input type="checkbox" name="monitor-${symbol}" class="monitor" />
 								<span class="label2">监</span>
-								<input type="checkbox" name="review-${symbol}" class="review" />
-								<span class="label2">涨</span>
 								
-								<input type="checkbox" name="signal-${symbol}" class="signal" />
-								<span class="label2">Sg</span>
-								<input type="checkbox" name="signal-${symbol}" class="structure" />
-								<span class="label2">构</span>
+								<input type="checkbox" name="signal-${symbol}" class="future" />
+								<span class="label2">候</span>
+								
 								<input type="checkbox" name="signal-${symbol}" class="stairs" />
 								<span class="label2">梯</span>
+								
 								<input type="checkbox" name="review2-${symbol}" class="review2" />
 								<span class="label2">承</span>
+								
 								<input type="checkbox" name="review2-${symbol}" class="rocket" />
 								<span class="label2">主</span>
 							
@@ -809,9 +869,20 @@
 			                        <span class="price" id="price-${symbol}" style="display:none">--</span>
 			                        <span class="price-change" id="change-${symbol}" style="display:none">--</span>
 			                    </div>
-								
-								
 			                </div>
+							<div class="db-info">
+								<span class="alert-light">${DBX[symbol]?.alert ? DBX[symbol].alert : ''}</span>
+							
+								<input type="checkbox" data-key="A2" class="db-input" ${DBX[symbol]?.A2 ? 'checked' : ''}/>
+								<span class="label2">A2</span>
+								
+								<input type="checkbox" data-key="B2" class="db-input" ${DBX[symbol]?.B2 ? 'checked' : ''}/>
+								<span class="label2">B2</span>
+								
+								<input type="checkbox" data-key="big" class="db-input" ${DBX[symbol]?.big ? 'checked' : ''}/>
+								<span class="label2">BIG</span>
+								
+							</div>
 							<div class="msg-info">
 								<span class="symbol-msg">${msg}</span>
 							</div>
@@ -866,6 +937,70 @@
 					const str="实体:"+obj.middle_all+"_"+"下线:"+obj.down_all;
 					$("#msg").html(str)
 				})
+				
+				// 双击设置价格预警
+				myChart.getZr().on('dblclick', function(event) {
+					const pointInPixel = [event.offsetX, event.offsetY];
+
+					// 必须在当前图表的K线grid区域内
+					if (!myChart.containPixel({gridIndex: 0}, pointInPixel)) return;
+
+					// 像素坐标转换成当前图表价格坐标
+					const dataCoord = myChart.convertFromPixel(
+						{gridIndex: 0},
+						pointInPixel
+					);
+
+					if (!dataCoord || isNaN(dataCoord[1])) return;
+
+					const xIndex = Math.round(dataCoord[0]);
+					const option = myChart.getOption();
+					const seriesData = option.series[0].data;
+
+					// 点击在某根K线实体/影线范围内，不画线
+					if (xIndex >= 0 && xIndex < seriesData.length) {
+						const bar = seriesData[xIndex];
+
+						const open  = bar[0];
+						const close = bar[1];
+						const low   = bar[2];
+						const high  = bar[3];
+
+						const mouseY = dataCoord[1];
+
+						if (mouseY >= low && mouseY <= high) {
+							return;
+						}
+					}
+
+					const priceY = xNum(dataCoord[1]);
+					
+					// let database=getLocal("DBX");
+					DBX[symbol].alert=priceY;
+					// console.log(database)
+					setLocal("DBX",DBX);
+					console.log("预警线："+symbol+" = "+priceY)
+
+					
+					
+					// 在当前K线图添加水平线
+					myChart.setOption({
+						series: [{
+							markLine: {
+								silent: true,
+								symbol: 'none',
+								lineStyle: {
+									type: 'dashed',
+									width: 1,
+									color: 'rgba(24, 255, 217, 0.8)'
+								},
+								data: [
+									{ yAxis: priceY }
+								]
+							}
+						}]
+					});
+				});
 			    
 			    // 默认设置
 			    charts[symbol] = {
@@ -1071,7 +1206,7 @@
 			    const lastKline = klineData[klineData.length - 1];
 			    chart.lastPrice = lastKline.close;
 			    // updatePriceDisplay(symbol, lastKline.close, lastKline.open);
-			   klineData=fillArr(klineData,100,"front");
+			   klineData=fillArr(klineData,300,"front");
 			   
 			   //构建完 klineData 后，计算最高成交量对应的成交额
 			   var maxVolumeTurnover = '';
@@ -1105,6 +1240,21 @@
 			    const showKlines = Math.min($("#numK").val(), totalKlines);
 			    const startValue = totalKlines - showKlines;
 			    const endValue = totalKlines - 1;
+				
+				//要画的线
+				//最新价格线
+				let allLines = [{ value: xNum(chart.lastPrice), name: '', color: 'rgba(255,255,255,0.3)' }];
+				//预警价格线
+				if(DBX[symbol].alert){
+					allLines.push({ value: DBX[symbol].alert, name: '', color: 'rgba(24, 255, 217, 0.8)' },);
+				}
+				
+				//设置突破警报信号
+				if(DBX[symbol].alert && chart.lastPrice>=DBX[symbol].alert){
+					$('.chart-box[data-name="哈基米USDT"]').find(".alert-light").addClass("flash");
+					DBX[symbol]["break"]=true;
+					setLocal("DBX",DBX)
+				}
 			    
 			    // 设置图表选项（K线图和交易量图在同一option中）
 			    const option = {
@@ -1118,8 +1268,8 @@
 					    top: 'top',
 					    style: {
 					        text: symbol,
-					        fill: 'rgba(255,255,255,0.6)',
-					        fontSize: 50
+					        fill: 'rgba(255,255,255,0.15)',
+					        fontSize: 40
 					    }
 					}],
 			        animation: false,
@@ -1191,7 +1341,7 @@
 			                left: '1%',
 			                right: '6%',
 			                top: '70%',
-			        		bottom:"5%",
+			        		bottom:"8%",
 			                // height: '28%'
 			            }
 			        ],
@@ -1206,27 +1356,27 @@
 			                splitNumber: 20,
 			                min: 'dataMin',
 			                max: 'dataMax',
-			                // axisLabel: {
-			                //     color: '#999',
-			                //     fontSize: 12,
-			                //     show: false
-			                // },
-							axisLabel: {
-								color: '#aaa',
-								fontSize: 12,
-								formatter:function(e){
-									if(e[0]=="2"){
-										const arr=e.split(" ");
-										const date=arr[0].split("/");
-										const time=arr[1].split(":");
-										return date[1]+"/"+date[2]+" "+time[0]+":"+time[1]
-									}
+			                axisLabel: {
+			                    color: '#999',
+			                    fontSize: 12,
+			                    show: false
+			                },
+							// axisLabel: {
+							// 	color: '#aaa',
+							// 	fontSize: 12,
+							// 	formatter:function(e){
+							// 		if(e[0]=="2"){
+							// 			const arr=e.split(" ");
+							// 			const date=arr[0].split("/");
+							// 			const time=arr[1].split(":");
+							// 			return date[1]+"/"+date[2]+" "+time[0]+":"+time[1]
+							// 		}
 									
-								}
-							},
+							// 	}
+							// },
 			                axisLine: {
 			                    lineStyle: {
-			                        color: '#aaa'
+			                        color: 'rgba(255,255,255,0.3)'
 			                    }
 			                },
 							axisPointer: {
@@ -1240,31 +1390,32 @@
 			                gridIndex: 1,
 			                data: dates,
 			                scale: true,
+							splitNumber: 20,
 			                boundaryGap: false,
 			                axisLine: { onZero: false },
-			                axisTick: { show: false },
+			                // axisTick: { show: false },
 			                splitLine: { show: false },
 							axisLabel: {
 							    color: '#aaa',
 							    fontSize: 12,
-							    show: false
+							    show: true
 							},
-			                // axisLabel: {
-			                // 	color: '#fff',
-			                // 	fontSize: 12,
-			                // 	formatter:function(e){
-			                // 		if(e[0]=="2"){
-			                // 			const arr=e.split(" ");
-			                // 			const date=arr[0].split("/");
-			                // 			const time=arr[1].split(":");
-			                // 			return date[1]+"/"+date[2]+" "+time[0]+":"+time[1]
-			                // 		}
+			                axisLabel: {
+			                	color: '#ffffff',
+			                	fontSize: 12,
+			                	formatter:function(e){
+			                		if(e[0]=="2"){
+			                			const arr=e.split(" ");
+			                			const date=arr[0].split("/");
+			                			const time=arr[1].split(":");
+			                			return date[1]+"/"+date[2]+" "+time[0]+":"+time[1]
+			                		}
 			                		
-			                // 	}
-			                // },
+			                	}
+			                },
 			                axisLine: {
 			                    lineStyle: {
-			                        color: '#444'
+			                        color: '#ffffff'
 			                    }
 			                },
 							axisPointer: {
@@ -1405,14 +1556,24 @@
 								    backgroundColor: 'rgba(0,0,0,1)',
 								    padding: [5,0],
 									fontSize:14,
-									formatter:function(params){
-										// console.log(num)
-										return xnumn(params.value)
-									}
+									// formatter:function(params){
+									// 	// console.log(num)
+									// 	return xnumn(params.value)
+									// }
 								},
-								data: [{
-									yAxis: chart.lastPrice.toFixed(10)
-								}]
+								//单线
+								// data: [{
+								// 	yAxis: chart.lastPrice.toFixed(10)
+								// }]
+								
+								//多线
+								data: allLines.map(line => ({
+									yAxis: line.value,
+									lineStyle: { color: line.color },
+									label: {
+										formatter: line.value
+									}
+								}))
 							}
 			            },
 			            {
@@ -1642,20 +1803,20 @@
 								coord: [datex, 'max'] ,
 								y: '5%',                // 相对图表底部位置
 								symbol: 'arrow',
-								symbolSize: 10,
+								symbolSize: 5,
 								symbolRotate: 180, 
 								itemStyle: { color: '#b3ff00'},
 								label: {
-									color: '#e6ca2b',
+									color: '#00e6c0',
 									formatter: function(params) {
 										// 直接使用外部传入的 signal 变量
 										return signal;
 									},
 									// 可选：调整标签位置和样式
 									 position: 'top',    // 关键：文字在符号上方
-									offset: [0, 0],   // 关键：向上偏移10像素
-									fontSize: 16,
-									backgroundColor: 'rgba(0,0,0,0.5)',
+									offset: [0, 5],   // 关键：向上偏移10像素
+									fontSize: 12,
+									backgroundColor: 'rgba(255,255,255,0.1)',
 									padding: [0,0]
 								}
 							}]

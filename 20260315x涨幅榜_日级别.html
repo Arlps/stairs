@@ -569,7 +569,7 @@
 		// 调用函数并输出结果
 		var perpetualSymbols = getBinancePerpetualSymbolsSync();
 		// 排除前50名的合约
-		var allSymbols=perpetualSymbols.slice(50);  
+		var allSymbols=perpetualSymbols//.slice(50);  
 		
 		// var allSymbols=perpetualSymbols.slice(500,550);
 		
@@ -901,16 +901,22 @@
 				if(item=="12h"){
 					x_start0(symbol, item, arr, 5)
 					bear(symbol, item, arr,10 )
+					x_AB(symbol, item, arr)
+					xUpStick(symbol, item, arr, 20)
 					// star(symbol, item, arr, len)
 				}
 				if(item=="1d"){
 					x_start0(symbol, item, arr, 5)
 					bear(symbol, item, arr,10 )
+					x_AB(symbol, item, arr)
+					xUpStick(symbol, item, arr, 20)
 					// star(symbol, item, arr, len)
 				}
 				if(item=="1w"){
 					x_start0(symbol, item, arr, 5)
 					bear(symbol, item, arr,len )
+					x_AB(symbol, item, arr)
+					xUpStick(symbol, item, arr, 20)
 				}
 			})
 		}

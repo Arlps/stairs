@@ -322,7 +322,7 @@
 		.chart-box{
 			    width: calc(33% - 4px) !important;
 			    min-width: 100px !important;
-				height: 700px!important;
+				height: 500px!important;
 				position: relative;
 		}
 		  @media screen and (max-width: 1000px) and (orientation: landscape) {
@@ -564,15 +564,15 @@
 		let rankArr={};
 		let history1m=[];
 		let questKnum=$("#scan_range").val();
-		const questInterval="15m";
-		const detectTime=["15m","30m","1h","2h","4h","8h"];
+		const questInterval="30m";
+		const detectTime=["30m","1h","2h","4h","8h"];
 		// const detectTime=["15m","30m","1h","2h","4h","8h","12h","1d"];
 		
 		// 调用函数并输出结果
 		var perpetualSymbols = getBinancePerpetualSymbolsSync();
 		// 排除前50名的合约
 		// console.log(perpetualSymbols)
-		var allSymbols=perpetualSymbols.slice(50);  
+		var allSymbols=perpetualSymbols//.slice(50);  
 		// console.log(allSymbols)
 		// alert()
 		// var allSymbols=perpetualSymbols.slice(500,550);
@@ -588,7 +588,7 @@
 			$("#autoChart").prop('checked','checked')
 			
 			// localStorage.removeItem("Vol1and5");
-			$('#numK').val(200).change();
+			$('#numK').val(500).change();
 			$('#questNum').val(500).change();
 			// if(!localStorage.Vol1and5){
 			// 	setLocal("Vol1and5",[])
@@ -910,7 +910,7 @@
 				if(item=="15m"){
 					x_start0(symbol, item, arr, 48)
 					// x_bow(symbol, item, arr, 100)
-					// bear(symbol, item, arr,len )
+					bear(symbol, item, arr,len )
 					// bear1(symbol, item, arr,len )
 					// bamboo(symbol, item, arr, 100)
 				}
@@ -919,34 +919,39 @@
 					x_start0(symbol, item, arr, 48)
 					// x_bow(symbol, item, arr, 100)
 					// breakbox(symbol, item, arr)
-					// bear(symbol, item, arr,len )
+					bear(symbol, item, arr,len )
 					// bear1(symbol, item, arr,len )
 					// bamboo(symbol, item, arr, 50)
 				}
 				
 				if(item=="1h"){
-					x_start0(symbol, item, arr, 24)
+					x_start0(symbol, item, arr)
+					// x_start0(symbol, item, arr, 24)
 					bear(symbol, item, arr,10)
 					x_bow(symbol, item, arr, 100)
-					bear(symbol, item, arr,10 )
+					// x_AB(symbol, item, arr)
 					// star(symbol, item, arr,20)
 					// bear1(symbol, item, arr,len )
 					// bamboo(symbol, item, arr, 50)
 				}
 				
 				if(item=="2h"){
-					x_start0(symbol, item, arr, 12)
+					x_start0(symbol, item, arr)
+					// x_start0(symbol, item, arr, 12)
 					bear(symbol, item, arr,10 )
-					bear(symbol, item, arr,10 )
+					x_bow(symbol, item, arr,50)
+					// x_AB(symbol, item, arr)
 					// star(symbol, item, arr,10)
 					// bear1(symbol, item, arr,len )
 					// bamboo(symbol, item, arr, 50)
 				}
 				
 				if(item=="4h"){
-					x_start0(symbol, item, arr, 6)
+					x_start0(symbol, item, arr)
+					// x_start0(symbol, item, arr, 6)
 					bear(symbol, item, arr,5 )
-					bear(symbol, item, arr,5 )
+					x_bow(symbol, item, arr, 25)
+					// x_AB(symbol, item, arr)
 					// star(symbol, item, arr, len)
 					// bear1(symbol, item, arr,len )
 					// bamboo(symbol, item, arr, 30)
@@ -954,9 +959,11 @@
 				}
 				
 				if(item=="8h"){
-					x_start0(symbol, item, arr, 3)
-					bear(symbol, item, arr,5 )
-					bear(symbol, item, arr,5 )
+					x_start0(symbol, item, arr)
+					// x_start0(symbol, item, arr, 3)
+					bear(symbol, item, arr,10)
+					x_bow(symbol, item, arr, 10)
+					// x_AB(symbol, item, arr,5)
 					// star(symbol, item, arr, len)
 				}
 				

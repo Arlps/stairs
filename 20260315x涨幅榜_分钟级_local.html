@@ -320,7 +320,7 @@
 		
 		
 		.container-rank{
-		    display: flex; flex: 0.5;
+		    display: flex; flex: 1;
 		    flex-wrap: wrap;  /* 允许换行 */
 		    gap: 10px;  /* 表格间距 */
 		    justify-content: flex-start;  /* 左对齐 */
@@ -380,7 +380,7 @@
 		.rank-box{
 			    border: 1px dashed #595967;
 			    padding: 2px 4px;
-			    height:130px;
+			    height:110px;
 			    overflow-y: scroll;
 		}
 		
@@ -498,7 +498,11 @@
 	
 	<!-- 涨幅版板块 -->
 	<div>
-		<span> <input type="checkbox" id="autoRefresh" checked>刷新</span>
+		<span> <input type="checkbox" id="autoRefresh">刷新</span>
+		<select name="" id="setTime">
+			<option value="1m">1m</option>
+			<option value="5m">5m</option>
+		</select>
 		<span> <input type="checkbox" id="autoChart">K线图</span>
 		( <span class="title-interval"></span> )
 		<button id="loadHistoryBtn">History</button>
@@ -508,7 +512,8 @@
 		<button id="scan">Scan</button>
 		<input type="text" id="scan_range" value="500" style="width: 30px;">
 		<span id="symbol_now"></span> 
-		<span id="unlock" class="red">音频未解锁！！！</span>
+		<span id="unlock" class="red">unlock！</span>
+		
 		
 	</div>
 	<div class="res-box">
@@ -553,7 +558,8 @@
 		
 		initOptions()
 		
-		const detectTime=["1m","5m","15m"];
+		// const detectTime=["1m","5m","15m"];
+		const detectTime=["5m","15m"];
         // 存储筛选结果
         let qualifiedSymbols = [];
         let isMonitoring = false;
@@ -562,9 +568,9 @@
 		const combineTnterval=[5,15,30,60,240];
 		var lastTrigger = null;
 		const pointTick=1;
-		const default_interval="1m";
+		const default_interval="5m";
 		const default_questNum=500;
-		const default_NumK=200;
+		const default_NumK=500;
 		let finished=false;
 		const timeOption={
 		  // year: 'numeric',
@@ -716,7 +722,7 @@
 				//设置去重
 				// const uniqueArr =uniqueBySymbol(arr)
 				//设置不去重
-				const uniqueArr =arr;
+				const uniqueArr =arr.slice(0, 10);;
 				startShowX(uniqueArr ,interval,"signal")
 			})
 			$("#signal-container").on("click",".openChart",function(){
@@ -795,28 +801,7 @@
 			$(".gap").find("span").html("间隔: ");
 		}
 		
-		//统计历史存储信息
-		// function sumup(){
-		// 	const data = getLocal("Vol1and5");
-		// 	const countMap = new Map();
-		// 	data.forEach(item => {
-		// 	  const symbol = item.symbol;
-		// 	  if (countMap.has(symbol)) {
-		// 	    countMap.set(symbol, countMap.get(symbol) + 1);
-		// 	  } else {
-		// 	    countMap.set(symbol, 1);
-		// 	  }
-		// 	});
-			
-		// 	// 获取不重复的name数量（Map的大小）
-		// 	const uniqueNameCount = countMap.size;
-			
-		// 	// 将Map转换为对象方便查看（可选）
-		// 	const nameCounts = Object.fromEntries(countMap);
-			
-		// 	console.log('不重复的name数量:', uniqueNameCount); // 输出: 3
-		// 	console.log('每个name的重复次数:', nameCounts);
-		// }
+
 		
 		
 		// 获取所有合约名称
@@ -854,10 +839,19 @@
 		
 		        var minute = now.getMinutes();
 		        var second = now.getSeconds();
+				
+				var timeFlag;
+				const setTime=$("#setTime").val();
+				if(setTime=="1m"){
+					timeFlag=(second === 5)
+				}else if(setTime=="5m"){
+					timeFlag=(minute % 5 === 0 && second === 5)
+				}
 		
 		        // 每 1 分钟的 05 秒
 				// const pointTime=pointTick;
-		        if (minute % 5 === 0 && second === 5) {
+		        // if (minute % 5 === 0 && second === 5) {
+					if (timeFlag) {
 					// alert()
 		            var key = now.getHours() + ':' + minute;
 		            // 防止同一时间点重复触发
@@ -1063,18 +1057,30 @@
 				if(item=="1m"){
 					// x_start0(symbol, item, arr, 50)
 					// x_mountain(symbol, item, arr)
+					// xUpRight(symbol, item, arr);
+					
 					// x_rocket_1m(symbol, item, arr)
+					// x1mRocket(symbol, item, arr)
 				}
 				if(item=="5m"){
-					x_start_mm(symbol, item, arr)
+					// x_start_mm(symbol, item, arr)
+					// xUpRight(symbol, item, arr)
+					// x1mRocket(symbol, item, arr)
+					// x2layers(symbol, item, arr)
+					
+					
 					// x_bow(symbol, item, arr, 100)
-					// x_start0(symbol, item, arr, 10)
+					x_start0(symbol, item, arr)
 					// x_mountain(symbol, item, arr)
 					// bamboo(symbol, item, arr,100)
 				}
 				if(item=="15m"){
-					x_start_mm(symbol, item, arr)
-					// x_start0(symbol, item, arr, 10)
+					// x_start_mm(symbol, item, arr)
+					// xUpRight(symbol, item, arr)
+					// x2layers(symbol, item, arr)
+					
+					
+					x_start0(symbol, item, arr)
 					// x_mountain(symbol, item, arr)
 					// bamboo(symbol, item, arr, num)
 				}
@@ -1115,8 +1121,9 @@
 				// setLocal("redAlertLocal",re)
 				let classifyArr={};
 			  // 初始化所有可能的 interval
-			  const intervals = detectTime;
-			   // const intervals = ["1m","5m"];
+			  // const intervals = detectTime;
+			   // const intervals = ["1m","5m","15m"]
+			   const intervals = ["5m","15m"];
 			  intervals.forEach(interval => {
 			    classifyArr[interval] = [];
 			  });
