@@ -9,7 +9,10 @@
 		<!-- <script src="LL.js"></script> -->
 
 		<style>
-			
+			input#txt
+			 {
+			    width: 120px;
+			}
 			body {
 				background: #111;
 				color: #ddd;
@@ -20,9 +23,10 @@
 				display: flex;
 			}
 
-			#tradeList {
-				    min-width: 200px;
+			#tradeList-box {
+				    min-width: 220px;
 				    max-height: 1453px;
+					    max-height: 1140px;
 				    overflow-y: scroll;
 				    /* overflow: auto; */
 				    /* border-right: 1px solid #333; */
@@ -48,10 +52,10 @@
 			  
 			}
 			.trade{ 
-				    padding: 10px 4px;
+				    padding: 5px 4px;
 				    /* border-bottom: 1px dashed rgb(185 214 72 / 83%); */
 				    background: #1c1d1e;
-				    margin: 2px 0;
+				    margin: 1px 0;
 			}
 			
 
@@ -82,7 +86,8 @@
 			}
 			.xname {
 			    /* font-weight: bold; */
-			    color: yellow;
+			    color: #fff;
+				font-weight: bold;
 			    font-size: 16px;
 			    width: 115px;
 			    cursor: pointer;
@@ -118,7 +123,7 @@
 				    font-size: 14px;
 				    width: 112px;
 				    /* font-weight: bold; */
-				    color: #7cd4e2;
+				    color: #979797;
 			}
 			.chart-wrap {
 				/* width: 700px;*/
@@ -147,30 +152,35 @@
 			  text-decoration: none;
 			  color: inherit;
 			}
-			.link{ font-size: 14px}
+			.link{ font-size: 12px}
+			}
+			
+			.active .xname span{
+				color: #2cffd5!important;
+			}
 			
 			
 			.heightplus{height: 1300px!important;}
 			
 			.tip{
 				border: none;
-				width: 70%;
-				font-size: 16px;
-				/* border: 0.5px solid #7c7f63; */
-				color: #fff;
-				padding: 1px;
-				font-weight: 100;
-				background: rgb(255 255 255 / 13%);
+				    width: 87%;
+				    font-size: 12px;
+				    /* border: 0.5px solid #7c7f63; */
+				    color:#ede50e;
+				    padding: 2px 1px;
+				    font-weight: 100;
+				    background: rgb(255 255 255 / 13%);
 			}
 			.make-tip{
 				    font-size: 10px;
 				 font-size: 12px;
-				     border-radius: 3px;
-				     background-color: rgb(161 104 11);
+				     border-radius: 1px;
+				     background-color: rgb(57 102 154);
 				     color: #FFF;
 				     cursor: pointer;
 				     margin-right: 0px !important;
-				     padding: 3px 5px;
+				         padding: 2px 4px;
 			}
 			.btns{
 				    color: white;
@@ -199,23 +209,23 @@
 				background-color: #dadd20; color: #000;
 			}
 			.done2{
-				background-color: #39cbd9; color: #000;
+				background-color:#d0d673; color: #000;
 			}
 			span.link a {
-			       background: #3d6e8c;
-			       display: inline-block;
-			       width: 20px;
-			       border-radius: 5px;
-			       text-align: center;
-			       color: #fff3f3;
-			       padding: 0;
-			       margin: 0;
-			       font-weight: bold;
-			   }
+			    background: #812b2b;
+			    /* display: inline-block; */
+			    width: 20px;
+			    border-radius: 2px;
+			    text-align: center;
+			    color: #fff3f3;
+			    padding: 0;
+			    margin: 0;
+			    font-weight: bold;
+				padding: 0px 2px;
 			}
 			.link a:hover{
 				/* color: #d6ff05!important; */
-				background: #2191f3;
+				background: #1ca292;
 				/* font-weight: bold; */
 				/* font-size: 12px */
 			}
@@ -243,13 +253,38 @@
 			.detail-mark::after {
 			    content: "*";
 			    color: yellow;
-			    margin-left: 5px;
+			    /* margin-left: 5px; */
 			}
 			
 			.chart-wrap {
 			    /* transition: width 0.3s ease; */
 			}
-
+			
+			.skey{
+				font-weight: bold;
+			}
+			.sval{
+				font-size: 12px
+			}
+			#select-box{
+				position: sticky;
+				    top: 0;
+				    background: #cae6ab;
+			}
+			#listTop{
+				    background: #2ab3c7;
+				    border: 0px;
+				    height: 100%;
+				    font-size: 12px;
+				    display: inline-block;
+				    color: #fff;
+				    margin-left: 2px;
+				    padding: 2px 10px;
+			}
+			#select-interval{
+				font-size: 12px;
+				    padding: 1px;
+			}
 		</style>
 	</head>
 
@@ -259,14 +294,16 @@
 			<!-- <button id="load">re-load</button> -->
 			<button id="total">TOTAL</button>
 			<select name="" id="source">AnalysisBTC
+				
 				<option value="AnalysisStairs">阶梯</option>
 				<option value="AnalysisData4">承接</option>
+				<option value="AnalysisData3">主升浪</option>
+				<option value="AnalysisFuture">预测</option>
+				<!-- <option value="AnalysisSignal">信号</option> -->
+				<!-- <option value="AnalysisStructure">结构</option> -->
+				<!-- <option value="AnalysisData2">常规币</option> -->
 				
-				<option value="AnalysisSignal">信号</option>
-				<option value="AnalysisStructure">结构</option>
-				<option value="AnalysisData2">常规币</option>
-				<option value="AnalysisData3">暴增币</option>
-				<option value="AnalysisStair">阶梯启动</option>
+				
 				<option value="AnalysisBTC">BTC</option>
 			</select>
 			<span>
@@ -305,7 +342,7 @@
 				
 			</label>
 			<span>
-				<input type="text" id="calc">
+				<input type="text" id="calc" style="display: none;">
 				<button id="btn-calc" class="btns">calc</button>
 				<button id="btn-cls" class="btns">cls</button>
 			</span>
@@ -314,14 +351,22 @@
 			</span>
 			<span class="space">
 				<button id="btn-detect" class="btns">detect</button>
-				<input type="text" id="testK">
+				<input type="text" id="testK" placeholder="Test Time">
 				<span class="tips"></span>
 			</span>
 		</div>
 		<!-- <p id="data"></p> -->
 		<div id="container">
 			
-			<div id="tradeList"></div>
+			<div id="tradeList-box">
+				<div id="select-box">
+					<button id="listTop">Top</button>
+					<select name="" id="select-interval"></select>
+					<select name="" id="select-signal"></select>
+					
+				</div>
+				<div id="tradeList"></div>
+			</div>
 			<div class="chart-wrap">
 				<div class="detail-box">
 					<button id="save-detail">save</button>
@@ -335,7 +380,7 @@
 
 		<script>
 			$(document).ready(function(){
-				
+				$("#chart2").hide()
 				
 				var initData=[{
 					name:"BTCUSDT",
@@ -358,8 +403,8 @@
 					setLocal("AnalysisBTC",initData);
 					// console.log(getLocal(dataX))
 				}
-				if(!getLocal("AnalysisStair")){
-					setLocal("AnalysisStair",initData);
+				if(!getLocal("AnalysisStairs")){
+					setLocal("AnalysisStairs",initData);
 					// console.log(getLocal(dataX))
 				}
 				
@@ -371,11 +416,13 @@
 					setLocal("AnalysisStructure",initData);
 					// console.log(getLocal(dataX))
 				}
-				if(!getLocal("AnalysisStairs")){
-					setLocal("AnalysisStairs",initData);
+				if(!getLocal("AnalysisFuture")){
+					setLocal("AnalysisFuture",initData);
 					// console.log(getLocal(dataX))
 				}
 				
+				
+				classifyTradeList(trades)
 				renderTradeList(trades);
 				
 				// addtogether()
@@ -406,6 +453,8 @@
 					const symbolx=$(this).parents(".trade").data("name");
 					const arrx = trades.filter(item => item.name == symbolx);
 					console.log(arrx)
+					
+					classifyTradeList(trades)
 					renderTradeList(arrx)
 				})
 				
@@ -417,6 +466,8 @@
 				//加载当前数据源全部
 				$("#total").click(function(){
 					trades =getLocal(dataX);
+					
+					classifyTradeList(trades)
 					renderTradeList(trades)
 				})
 				
@@ -426,6 +477,7 @@
 					dataX=$("#source").val();
 					trades =getLocal(dataX);
 					// console.log(trades);
+					classifyTradeList(trades)
 					renderTradeList(trades)
 				})
 				
@@ -439,6 +491,8 @@
 					};
 					trades.push(item);
 					setLocal(dataX,trades)
+					
+					classifyTradeList(trades)
 					renderTradeList(trades);
 				})
 				
@@ -498,7 +552,8 @@
 				
 				    // 更新左边列表显示
 				    $(".trade[data-id=" + symbolx.id + "]").find(".xtime").html(newtime);
-					 tips("✅ 已保存：" + newtime);
+					 // tips("✅ 已保存：" + newtime);
+					 tips("✅ 已保存：");
 				});
 				
 				// 双击K线图空白处（非candlestick区域）→ 画水平线
@@ -677,6 +732,21 @@
 				// ！！！！慎用 赋值每个独一无二的id
 				// giveID()
 				
+		
+				$("#select-box").on('change', '#select-interval', function() {
+					console.log($(this).val())
+					if($(this).val()=="total"){
+						renderTradeList(trades)
+					}else{
+						let finalArr= trades.filter(item => item.tip.startsWith($(this).val()));
+						renderTradeList(finalArr)
+					}
+				});
+				
+				$("#listTop").click(function(){
+					$('#tradeList').scrollTop(0);
+				})
+				
 			})
 			//================================================================================================================
 			//读取本地数据   赋值全局变量trades
@@ -729,9 +799,45 @@
 				}
 			}
 			
+			function classifyTradeList(trades){
+				// $("#select-interval").html("<option value='total' selected>Interval</option>");
+				// 图片中的周期顺序
+				const order = ["1m", "5m", "15m", "30m", "1h", "2h", "4h", "8h", "12h", "1d", "1w", "1M"];
+				const count = {};
+				
+				trades.forEach(trade => {
+				  const tip = trade.tip || "";
+				  // 正则匹配开头的时间周期，兼容有空格和无空格
+				  const match = tip.match(/^(1m|5m|15m|30m|1h|2h|4h|8h|12h|1d|1w|1M)/);
+				  if (match) {
+				    const key = match[1];
+				    count[key] = (count[key] || 0) + 1;
+				  }
+				});
+				
+				// 按图片顺序排序并生成最终对象
+				const result = {};
+				order.forEach(k => {
+				  if (count.hasOwnProperty(k)) {
+				    result[k] = count[k];
+				  }
+				});
+				
+				console.log(result);
+				// return result
+				
+				let html="<option value='total'>Interval</option>";
+				for(var key in result){
+					html+="<option value='"+key+"'><span class='skey'>"+key+"</span> <span class='sval'> ("+result[key]+")</span></option>"
+				}
+				$("#select-interval").html(html)
+				
+			}
+			
 			
 			/* ========== 交易列表 ========== */
 			function renderTradeList(arr) {
+				
 				// countHours(arr)
 				calander(arr)
 				// var arr=trades//.reverse();
@@ -752,17 +858,18 @@
 								<span class="x" data-id=${item.id}>x</span>
 								<span class="xname"><span>${item.name}</span></span>
 								<span class="link ${detailClass}">
-									<a href="https://www.binance.com/zh-CN/futures/${item.name}" target="_blank">B</a>
-									<a href="https://www.coinglass.com/tv/zh/Binance_${item.name}" target="_blank">C</a>
+									<a href="https://www.binance.com/zh-CN/futures/${item.name}" target="_blank">BN</a>
+									<a href="https://www.coinglass.com/tv/zh/Binance_${item.name}" target="_blank">CG</a>
 								</span>
-							</div>
-							<div>
-								<input class="tip" type="text" value="${item.tip}">
-								<span class="make-tip">YES</span>
 							</div>
 							<div>
 								<span class="xtime">${item.time}</span>
 							</div>
+							<div>
+								<input class="tip" type="text" value="${item.tip}">
+								<span class="make-tip">#</span>
+							</div>
+							
 						</div>
 					`)
 					$('#tradeList').append($div)
@@ -893,6 +1000,7 @@
 					
 					
 					if ($('#syncBTC').is(':checked')) {
+						$("#chart2").show()
 						$.get(url, {
 							symbol: "BTCUSDT",
 							interval: currentInterval,
@@ -907,6 +1015,7 @@
 					} else {
 						// 不加载BTC时清空图2
 						chart2.clear();
+						$("#chart2").hide()
 					}
 					
 					
@@ -1026,7 +1135,7 @@
 				 	const transTargetTime=transKlineTime(symbolx.time, currentInterval)
 				 	const targetKIndex = category.indexOf(transTargetTime);
 				 	// coord=[targetKIndex, klineData[targetKIndex].high]
-					coord=[targetKIndex, klineData[targetKIndex].low*0.97]
+					coord=[targetKIndex, klineData[targetKIndex].low]
 				 }
 				 
 				 //设置水印
@@ -1053,7 +1162,7 @@
 				            // borderWidth: 1
 				        },
 				        label: {
-							fontSize: 15,
+							fontSize: 8,
 				            color: '#2ae6fa',  
 							fontFamily: 'Arial', 
 							// fontWeight: 'bold',
@@ -1080,16 +1189,23 @@
 					    style: {
 					        text: water,
 					        fill: 'rgba(255,255,255,0.2)',
-					        fontSize: 50
+					        fontSize: 30
 					    }
 					}],
 					animation: false,
 					tooltip: {
 					    trigger: 'axis',
-					    axisPointer: {
+					     axisPointer: {
 					        type: 'cross',
-					        label: {
-					            backgroundColor: '#6a7985'
+					        lineStyle: {
+					          color: '#6ed1ff',   // 纵向线（通常跟 x 轴）
+					          width: 0.3,
+					          type: 'dashed'
+					        },
+					        crossStyle: {
+					          color: '#6ed1ff',   // 横向线（通常跟 y 轴）
+					          width: 0.3,
+					          type: 'dashed'
 					        }
 					    },
 					    backgroundColor: 'rgba(255,255,255,0.1)',
@@ -1097,7 +1213,7 @@
 						padding:[2,2],
 					    textStyle: {
 					        color: '#e0e0e0',
-							fontSize:20
+							fontSize:12
 					    },
 						position: function (point, params, dom, rect, size) {
 							let x = point[0] - 200;
@@ -1140,7 +1256,7 @@
 					axisPointer: {
 					  link: [
 					    {
-					      xAxisIndex: 'all'   // 🔥 所有 xAxis 共享一个十字线
+					      xAxisIndex: 'all',   // 🔥 所有 xAxis 共享一个十字线
 					    }
 					  ]
 					},
@@ -1246,7 +1362,7 @@
 							        // 设置文字样式
 							        textStyle: {
 							          color: '#ff0',      // 文字颜色
-							          fontSize: 18,   
+							          fontSize: 12,   
 										  fontWeight:"bold"// 字体大小
 							        },
 							        // 设置背景颜色和边框
@@ -1511,8 +1627,8 @@
 			                y2: p[1]
 			            },
 			            style: {
-			                stroke: '#ecec00',
-			                lineWidth: 1,
+			                stroke: 'rgba(255,255,255,0.8)',
+			                lineWidth: 0.5,
 			                lineDash: [4, 4],
 			                opacity: 0.85
 			            }
@@ -2003,6 +2119,7 @@
 					
 					if(currentInterval=="1m"){
 						x_rocket_1m(symbolx.name, currentInterval, detectData);
+						x1mRocket(symbolx.name, currentInterval, detectData)
 					}
 					
 					if(currentInterval=="1m" || currentInterval=="5m"){
@@ -2024,7 +2141,7 @@
 			function x_start0(symbol, item, arr, num) {
 				let testTime=0;
 				if($("#testK").length>0){
-					testTime==strToStamp($("#testK").val());
+					testTime=strToStamp($("#testK").val());
 				}
 				
 			    // const results=[];
@@ -2090,13 +2207,15 @@
 			    			
 			        const preKlines = klines.slice(i - pre, i);
 					
-					// 【新增条件】30m：A的交易量必须 >= 前面20根任意一根的交易量
+					// 【信号增强】30m：A的交易量必须 >= 前面20根任意一根的交易量
 					if (item == "30m" || item == "15m") {
 					    const pre20VolumeMax = Math.max(
 					        ...klines.slice(i - 20, i).map(k => k.volume)
 					    );
 					
-					    if (A.volume < pre20VolumeMax) continue;
+					    if (A.volume >= pre20VolumeMax){
+							enhance="+";
+						}
 					}
 			    			
 			        //信号增强： A的收盘价大于前面任意一根的最高价================================
@@ -2169,7 +2288,7 @@
 			            low: A.low,
 			            change: (aChange * 100).toFixed(2) + '%',
 			            quoteVolume: A.quoteVolume,
-						signal:"bs"+enhance
+						signal:"S"+enhance
 			        });
 			    }
 				report(signal_result)
@@ -2363,7 +2482,12 @@
 					const waveA = (A.high - A.low) / A.low;
 					const n1wave = (next1.high - next1.low) / next1.low;
 					const n2wave = (next2.high - next2.low) / next2.low;
-					if (n1wave >= waveA * 0.7 || n2wave >= waveA * 0.7) continue;
+					if (n1wave >= waveA * 0.7 || n2wave >= waveA * 0.7) {
+						if(testMode && testTarget){
+							$(".tips").html(testText+"=========>> A后两根K线振幅都小于A振幅的0.7")
+						}
+						continue;
+					}
 			
 					// ★ 符合条件的，记录到结果集 ★
 				   signal_result.push({
@@ -2379,7 +2503,92 @@
 				}
 				report(signal_result)
 			}
-		
+			
+			//1m百倍
+			function x1mRocket(symbol, item, arr, num) {
+			    const pre = 100;
+			    const per = 0.02; // 2%转换为小数
+				const ratio=20;
+			    
+			    // 处理num参数：未传入则默认使用arr.length - pre
+			    if (num === undefined || num === null) {
+			        num = arr.length - pre;
+			    }
+			    
+			    // 数据量不足检查
+			    if (arr.length < pre + num || num <= 0) {
+			        return false;
+			    }
+			    
+			    // 只检查最后num根K线
+			    const startIndex = arr.length - num;
+			    
+			    for (let i = startIndex; i < arr.length; i++) {
+			        const A = arr[i];
+			        
+			        // 条件1：上涨K线且涨幅 >= per (2%)
+			        // 注意：open > close为下跌，这里需要上涨
+			        if (A.close <= A.open) {
+			            continue; // 不是上涨K线，跳过
+			        }
+			        
+			        const changePercent = (A.close - A.open) / A.open;
+			        if (changePercent < per) {
+			            continue; // 涨幅不足2%，跳过
+			        }
+			        
+			        // 获取前pre根K线
+			        const preStartIndex = i - pre;
+			        if (preStartIndex < 0) {
+			            continue; // 前面数据不足pre根，跳过
+			        }
+			        
+			        let volumeConditionMet = true;
+			        let maxPrice = 0;
+			        
+			        // 遍历前pre根K线
+			        for (let j = preStartIndex; j < i; j++) {
+			            const prevCandle = arr[j];
+			            
+			            // 记录最高价
+			            if (prevCandle.high > maxPrice) {
+			                maxPrice = prevCandle.high;
+			            }
+			            
+			            // 条件2：A的成交量大于前pre根每一根的成交量的50倍
+			            // 处理成交量可能为0的情况
+			            const threshold = prevCandle.volume === 0 ? 0 : prevCandle.volume * ratio;
+			            if (A.volume <= threshold) {
+			                volumeConditionMet = false;
+			                break;
+			            }
+			        }
+			        
+			        if (!volumeConditionMet) {
+			            continue; // 成交量条件不满足，跳过
+			        }
+			        
+			        // 条件3：A的收盘价大于pre根中的最高价
+			        if (A.close <= maxPrice) {
+			            continue; // 收盘价不大于前pre根最高价，跳过
+			        }
+			        
+			       // ★ 符合条件的，记录到结果集 ★
+			       signal_result.push({
+					   time: A.time,
+					   open: A.open,
+					   close: A.close,
+					   high: A.high,
+					   low: A.low,
+					   // change: (perA * 100).toFixed(2) + '%',
+					   quoteVolume: A.quoteVolume,
+					   signal:"rr"
+			       });
+			    }
+			    
+			   report(signal_result)
+			}
+			
 			function x_rocket_1m(symbol, item, arr) {
 			    // let pre;
 			    // switch(item) {
@@ -2726,6 +2935,15 @@
 			
 			//"20260715 1250"格式的yyyyMMdd hhmm 时间字符串转成时间戳
 			function strToStamp(timeStr) {
+				if (timeStr.includes('/') && timeStr.includes(':')) {
+				    // 转换为 "20260917 0200"
+				    const [datePart, timePart] = timeStr.split(' ');
+				    const d = datePart.replace(/\//g, '');
+				    const t = timePart.replace(/:/g, '');
+				    timeStr=`${d} ${t}`;
+				  }
+
+				
 			    let year = parseInt(timeStr.substring(0, 4));
 			    let month = parseInt(timeStr.substring(4, 6)) - 1; // 月份从0开始
 			    let day = parseInt(timeStr.substring(6, 8));

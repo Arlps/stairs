@@ -172,12 +172,12 @@ function x_start0(symbol, item, arr, num) {
 		if (n2Range >= aRange * 1.2) continue;
 
 		// 触发启动信号
-		collect_signal(symbol, item, `stairs${enhance}`, A.time);
+		collect_signal(symbol, item, `S${enhance}`, A.time);
 
-		return true;
+
 	}
 
-	return false;
+	 // return;
 }
 
 
@@ -400,11 +400,11 @@ function x_rocket_1m(symbol, item, arr) {
     			
     			   
     
-    const pre=200;
+    const pre=100;
     const per = 0.005;     // 0.5%
     const vol = 25000;     // 成交额阈值
     const Rvol = 8;        // 成交量倍数阈值
-    const Rper = 10;       // 涨幅倍数阈值
+    const Rper = 50;       // 涨幅倍数阈值
     
     // 2. 计算需要检测的范围
     const num = arr.length - pre;
@@ -645,6 +645,141 @@ function bear(symbol, item, arr, num) {
 
 	return false; // 未找到符合条件的信号
 }
+
+// M区间至少包含3根K线
+
+// 长度为3时，必须全部为下跌K线
+
+// 长度大于3时，最多允许1根上涨K线
+
+// 上涨K线不能在首根或最后一根
+
+// 上涨K线涨幅必须小于0.2%
+
+// M区间总跌幅必须大于等于18%
+
+// A成交量大于等于M最后一根成交量的0.98倍
+
+// 若A为下跌K线，其实体占比不能超过15%
+
+// A下引线占比大于0.65且实体占比小于0.15时输出增强信号BEAR+，否则输出普通信号BEAR
+function bearPlus(symbol, item, arr) {
+    // 直接使用整个 arr 数组，不再通过 num 截取
+    const candles = arr;
+
+    if (candles.length < 4) return false; // 至少需要 M(3根) + A(1根)
+
+    // 辅助函数
+    const isDown = (c) => c.close < c.open; // 判断是否为下跌K线
+    const isUp = (c) => c.close > c.open; // 判断是否为上涨K线
+    const changePercent = (c) => ((c.close - c.open) / c.open) * 100; // 计算涨跌幅百分比
+    const bodyRatio = (c) => { // 计算K线实体占比
+        const body = Math.abs(c.close - c.open);
+        const total = c.high - c.low;
+        return total === 0 ? 0 : body / total;
+    };
+
+    // 查找所有有效的 M 区间，并在其后检查 A
+    // 遍历可能的 M 结束位置
+    // M 必须以 candles[i] 结束，A 是 candles[i+1]
+
+    for (let aIdx = 1; aIdx < candles.length; aIdx++) {
+        const A = candles[aIdx]; // A 是 M 后面的那根K线
+        if(symbol=="BTWUSDT" && item=="1d" ){//&& A.open=="0.0502500"){
+            console.log(1)
+        }
+
+        // 检查连续的 M 区间，以 aIdx-1 结束
+        // M 必须至少有3根K线
+        // 尝试所有可能的 M 起始位置
+        for (let mStart = 0; mStart <= aIdx - 3; mStart++) {
+            const mCandles = candles.slice(mStart, aIdx); // M 区间内的K线
+            const mLen = mCandles.length;
+
+            if (mLen < 3) continue; // 长度不足3根，跳过
+
+            // 验证 M 区间：连续下跌趋势并遵循规则
+            // - 如果长度为3：必须全部是下跌K线
+            // - 如果长度 > 3：最多允许1根上涨K线，但：
+            //   * 上涨K线的涨幅必须 < 0.3%
+            //   * 上涨K线不能在头部（索引0）或尾部（索引mLen-1）
+
+            let upCount = 0; // 上涨K线的计数
+            let upInvalidPosition = false; // 上涨K线位置是否无效
+            let upExceedsLimit = false; // 上涨K线是否超过涨幅限制
+
+            for (let i = 0; i < mLen; i++) {
+                const c = mCandles[i];
+                if (isUp(c)) { // 如果是上涨K线
+                    upCount++;
+                    if (mLen === 3) { // 长度为3时不允许上涨
+                        upInvalidPosition = true;
+                        break;
+                    }
+                    // 对于长度 > 3 的情况
+                    if (i === 0 || i === mLen - 1) { // 上涨不能在首尾位置
+                        upInvalidPosition = true;
+                        break;
+                    }
+                    const gainPct = changePercent(c);
+                    if (gainPct >= 0.3) { // 涨幅不能超过0.3%
+                        upExceedsLimit = true;
+                        break;
+                    }
+                }
+            }
+
+            if (upInvalidPosition || upExceedsLimit) continue; // 不符合规则，跳过
+            if (mLen === 3 && upCount > 0) continue; // 长度为3时不能有上涨
+            if (mLen > 3 && upCount > 1) continue; // 长度>3时最多1次上涨
+
+            // 计算 M 区间的总跌幅
+            const mOpen = mCandles[0].open; // M 第一根的开盘价
+            const mClose = mCandles[mLen - 1].close; // M 最后一根的收盘价
+            const totalDropPct = ((mOpen - mClose) / mOpen) * 100; // 总跌幅百分比
+
+            if (totalDropPct < 18) continue; // 总跌幅必须 >= 18%
+
+            // 检查 A 的条件
+            const lastMCandle = mCandles[mLen - 1]; // M 的最后一根K线
+            const avgMVolume = mCandles.reduce((sum, c) => sum + c.volume, 0) / mLen; // M 的平均成交量
+
+            const rRaw = A.volume / lastMCandle.volume;
+            const r = Math.round(rRaw * 10) / 10; // 成交量倍数，保留1位小数
+
+            if (A.volume < lastMCandle.volume * 0.98) continue; // A成交量 >= M最后一根的0.98倍
+            // if (A.volume < avgMVolume) continue; // A成交量 >= M平均成交量
+
+            let aValid = true;
+            if (isDown(A)) { // 如果 A 是下跌K线
+                if (bodyRatio(A) > 0.15) { // 实体占比不能超过15%
+                    aValid = false;
+                }
+            }
+
+            if (!aValid) continue;
+
+            const totalDrop = totalDropPct.toFixed(2) + "%";
+
+            // 新增：计算A的下引线长度占比和实体占比
+            const lowerShadow = Math.min(A.open, A.close) - A.low; // 下引线长度
+            const totalLength = A.high - A.low; // A的整体长度
+            const lowerShadowRatio = totalLength === 0 ? 0 : lowerShadow / totalLength; // 下引线占比
+            const body = Math.abs(A.close - A.open); // A的实体长度
+            const bodyRatioValue = totalLength === 0 ? 0 : body / totalLength; // A的实体占比
+
+            // 下引线长度大于整体长度的0.65 且 实体小于整体长度的0.15
+            if (lowerShadowRatio > 0.65 && bodyRatioValue < 0.15) {
+                // 输出增强信号
+                collect_signal(symbol, item, `BEAR+:${r}`, A.time);
+            } else {
+                collect_signal(symbol, item, `BEAR:${r}`, A.time);
+            }
+        }
+    }
+}
+
+
 
 
 //===============================================================================A放量上涨B缩量停滞

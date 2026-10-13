@@ -1101,7 +1101,7 @@
 		function collect_signal(symbol,interval,signal,time){
 			//先删除arr里面相同的成员，再加入新的信号对象
 			const index = redAlertArr.findIndex(item => 
-			    item.symbol === symbol && item.interval === interval && item.time==time && item.signal==signal);
+			    item.symbol === symbol && item.interval === interval && item.time==time && item.signal==signal  && item.time===time);
 			
 			if (index == -1) {
 			    // 添加新成员

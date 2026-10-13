@@ -71,14 +71,14 @@
 		.running { color: #27ae60; } /* 运行时绿色 */
 		.paused { color: #e74c3c; }  /* 暂停时红色 */
 		button {
-		     padding: 0px 5px;
+		     padding: 0px 2px;
 		         /* margin: 5px; */
 		         border: none;
 		         border-radius: 4px;
 		         cursor: pointer;
 		         background-color: #075b79;
 		         color: white;
-		         font-size: 16px;
+		         font-size: 14px;
 		         font-weight: bold;
 		}
 		button:hover {
@@ -216,7 +216,8 @@
         th {
             background: linear-gradient(135deg, #252e48 0%, #1a1f2d 100%);
             color: #4caf50;
-            font-weight: 600;
+            /* font-weight: 600; */
+			font-size: 14px;
             cursor: pointer;
             position: sticky;
             top: 0;
@@ -910,7 +911,7 @@
 				if(item=="15m"){
 					x_start0(symbol, item, arr, 48)
 					// x_bow(symbol, item, arr, 100)
-					bear(symbol, item, arr,len )
+					// bear(symbol, item, arr,len )
 					// bear1(symbol, item, arr,len )
 					// bamboo(symbol, item, arr, 100)
 				}
@@ -919,7 +920,8 @@
 					x_start0(symbol, item, arr, 48)
 					// x_bow(symbol, item, arr, 100)
 					// breakbox(symbol, item, arr)
-					bear(symbol, item, arr,len )
+					// bear(symbol, item, arr,len )
+					bearPlus(symbol, item, arr)
 					// bear1(symbol, item, arr,len )
 					// bamboo(symbol, item, arr, 50)
 				}
@@ -927,8 +929,9 @@
 				if(item=="1h"){
 					x_start0(symbol, item, arr)
 					// x_start0(symbol, item, arr, 24)
-					bear(symbol, item, arr,10)
-					x_bow(symbol, item, arr, 100)
+					// bear(symbol, item, arr,10)
+					bearPlus(symbol, item, arr)
+					// x_bow(symbol, item, arr, 100)
 					// x_AB(symbol, item, arr)
 					// star(symbol, item, arr,20)
 					// bear1(symbol, item, arr,len )
@@ -938,8 +941,9 @@
 				if(item=="2h"){
 					x_start0(symbol, item, arr)
 					// x_start0(symbol, item, arr, 12)
-					bear(symbol, item, arr,10 )
-					x_bow(symbol, item, arr,50)
+					// bear(symbol, item, arr,10 )
+					bearPlus(symbol, item, arr)
+					// x_bow(symbol, item, arr,50)
 					// x_AB(symbol, item, arr)
 					// star(symbol, item, arr,10)
 					// bear1(symbol, item, arr,len )
@@ -949,8 +953,9 @@
 				if(item=="4h"){
 					x_start0(symbol, item, arr)
 					// x_start0(symbol, item, arr, 6)
-					bear(symbol, item, arr,5 )
-					x_bow(symbol, item, arr, 25)
+					// bear(symbol, item, arr,5 )
+					bearPlus(symbol, item, arr)
+					// x_bow(symbol, item, arr, 25)
 					// x_AB(symbol, item, arr)
 					// star(symbol, item, arr, len)
 					// bear1(symbol, item, arr,len )
@@ -961,8 +966,9 @@
 				if(item=="8h"){
 					x_start0(symbol, item, arr)
 					// x_start0(symbol, item, arr, 3)
-					bear(symbol, item, arr,10)
-					x_bow(symbol, item, arr, 10)
+					// bear(symbol, item, arr,10)
+					bearPlus(symbol, item, arr)
+					// x_bow(symbol, item, arr, 10)
 					// x_AB(symbol, item, arr,5)
 					// star(symbol, item, arr, len)
 				}
@@ -983,7 +989,7 @@
 		function collect_signal(symbol,interval,signal,time){
 			//先删除arr里面相同的成员，再加入新的信号对象
 			const index = redAlertArr.findIndex(item => 
-			    item.symbol === symbol && item.interval === interval && item.signal === signal
+			    item.symbol === symbol && item.interval === interval && item.signal === signal && item.time===time
 			);
 			
 			if (index !== -1) {

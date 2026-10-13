@@ -61,7 +61,7 @@
             background-color: #161b22;
             border-radius: 10px;
             padding: 4px;
-            height: 480px;
+            height: 380px;
 			/* height: 380px; */
 			    border: 3px dashed rgba(0, 0, 0, 0.01);
         }
@@ -578,10 +578,10 @@
 							<option value="80">80</option>
 					        <option value="100">100</option>
 					        <option value="150">150</option>
-							<option value="200" selected>200</option>
+							<option value="200">200</option>
 							<option value="300">300</option>
 							<option value="400">400</option>
-							<option value="500">500</option>
+							<option value="500" selected>500</option>
 					    </select>
 					</div>
 					<div class="form-row" style="margin-top: 4px;">
@@ -591,12 +591,12 @@
 					        <option value="30">30</option>
 					        <option value="50">50</option>
 							<option value="80">80</option>
-					        <option value="100" selected>100</option>
+					        <option value="100">100</option>
 					        <option value="150">150</option>
 							<option value="200">200</option>
 							<option value="300">300</option>
 							<option value="400">400</option>
-							<option value="500">500</option>
+							<option value="500" selected>500</option>
 					    </select>
 					</div>
                 </div>
@@ -645,8 +645,8 @@
         let countdownValue = 0;
         let alertHistory = [];
 		// const showKnum = 800;
-		let showKnum=100;   //1m=500 5m=100  15m=33 
-		let loadKnum=200;
+		let showKnum=$("#numK").val();   //1m=500 5m=100  15m=33 
+		let loadKnum=$("#loadnumK").val();
 		// 在页面顶部定义
 		let audioUnlocked = false;
 		
@@ -771,24 +771,32 @@
 		
 			
 			$('#symbolList').on('mouseover', '.symbol-item', function() {
-				$(this).find(".symbol-name").css("color","#00ff3c");
-				var idx=$(this).index();
-				var $target=$(".chart-wrapper").eq(idx)//.find(".chart-header");
-				 $target.css("background","#0c393e");
+			    const name = $(this).find(".symbol-name").text().trim() + "USDT";
+			    $(this).find(".symbol-name").css("color","#00ff3c");
+			
+			    const $target = $("#" + name);
+			    $target.css("background","#0c393e");
 			}).on('mouseleave', '.symbol-item', function() {
-				$(this).find(".symbol-name").css("color","yellow");
-				var idx=$(this).index();
-				var $target=$(".chart-wrapper").eq(idx)//.find(".chart-header");
-				 $target.css("background","#161b22")
+			    const name = $(this).find(".symbol-name").text().trim() + "USDT";
+			    $(this).find(".symbol-name").css("color","yellow");
+			
+			    const $target = $("#" + name);
+			    $target.css("background","#161b22");
 			}).on('click', '.symbol-item', function() {
-				// $(this).css("background","#365c8c").siblings().css("background","#111827")
-				var idx=$(this).index();
-				var $target=$(".chart-wrapper").eq(idx);
-				var distance= $target.offset().top -$(".chart-container").offset().top + $(".chart-container").scrollTop();
-				$(".charts-container").animate({
-					scrollTop: distance
-				}, 100); 
-			})
+			    const name = $(this).find(".symbol-name").text().trim() + "USDT";
+			    const $target = $("#" + name);
+			
+			    if (!$target.length) return;
+			
+			    const distance =
+			        $target.offset().top -
+			        $(".charts-container").offset().top +
+			        $(".charts-container").scrollTop();
+			
+			    $(".charts-container").animate({
+			        scrollTop: distance
+			    }, 100);
+			});
 			
 			// $('#alertsContainer').on('click', '.alert-item', function() {
 			$('body').on('click', '.alert-item', function() {
@@ -901,9 +909,9 @@
 				//将BTC放第一位 其他按字母排列
 				HeatMonitor.sort((a, b) => {
 				  // 如果a是'BTCUSDT'，则a应排在b前面
-				  if (a.name === 'BTCUSDT') return -1;
-				  // 如果b是'BTCUSDT'，则b应排在a前面
-				  if (b.name === 'BTCUSDT') return 1;
+				  // if (a.name === 'BTCUSDT') return -1;
+				  // // 如果b是'BTCUSDT'，则b应排在a前面
+				  // if (b.name === 'BTCUSDT') return 1;
 				  // 对于其他情况，按name的首字母顺序排序
 				  return a.name.localeCompare(b.name);
 				});

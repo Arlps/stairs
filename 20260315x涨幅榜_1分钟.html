@@ -498,7 +498,7 @@
 	
 	<!-- 涨幅版板块 -->
 	<div>
-		<span> <input type="checkbox" id="autoRefresh" checked>刷新</span>
+		<span> <input type="checkbox" id="autoRefresh">刷新</span>
 		<span> <input type="checkbox" id="autoChart">K线图</span>
 		( <span class="title-interval"></span> )
 		<button id="loadHistoryBtn">History</button>
@@ -506,7 +506,7 @@
 		<button id="thinAlert" style="background: darkgreen; font-weight: bold;">S</button>
 		<span id="scan_time"></span> 
 		<button id="scan">Scan</button>
-		<input type="text" id="scan_range" value="50" style="width: 30px;">
+		<input type="text" id="scan_range" value="500" style="width: 30px;">
 		<span id="symbol_now"></span> 
 		<span id="unlock" class="red">音频未解锁！！！</span>
 		
@@ -515,7 +515,7 @@
 		<!-- 涨幅版结果 -->
 		<div class="container-rank"></div>
 		<!-- 信号结果 -->
-		<div id="signal-container" style="display: none;"></div>
+		<div id="signal-container"></div>
 	</div>
 	
 	<div class="chart-container" id="chartContainer"></div>
@@ -911,6 +911,8 @@
 			// redAlertArr=[];
 			 // classifyArr = {};
 			 localPriceAlarm=getLocal("priceAlarm");
+			 
+			 questKnum=$("#scan_range").val();
             // 开始获取K线数据
             fetchKlinesData();
         }
@@ -921,11 +923,6 @@
 			//获取每次扫描的时间并存入本地存储
 			var $now=(new Date()).toLocaleString('zh-CN', timeOption);
 			$("#scan_time").html($now);
-			// let localTime=getLocal("scanTime1and5");
-			// localTime.push($now);
-			// setLocal("scanTime1and5",localTime)
-			
-			
 			Acounter=0;
             // 开始处理第一批
             processBatch(0);
@@ -975,7 +972,7 @@
 							//涨幅版
 							collectPercent(klineData,symbol);
 							//信号
-							// redAlert(symbol, klineData)
+							redAlert(symbol, klineData)
 							
 							// MutilSignal_1m(klineData,symbol)
 							
@@ -1057,9 +1054,6 @@
 			interval.forEach(function(item, idx) {
 				const arr=combineX(klineData, item);
 				if(!arr.length) return;
-				
-				
-				
 				if(item=="1m"){
 					// x_start0(symbol, item, arr, 50)
 					// x_mountain(symbol, item, arr)
@@ -1095,7 +1089,7 @@
 		function collect_signal(symbol,interval,signal,time){
 			//先删除arr里面相同的成员，再加入新的信号对象
 			const index = redAlertArr.findIndex(item => 
-			    item.symbol === symbol && item.interval === interval && item.time==time && item.signal==signal);
+			    item.symbol === symbol && item.interval === interval && item.time==time && item.signal==signal && item.time===time);
 			
 			if (index == -1) {
 			    // 添加新成员
